@@ -161,7 +161,7 @@ index 58bd0ba19c2277387912e0e2468b5f4b132dce8f..17561806c6fe1b9cd6cf191b40454fb0
 -interface MediaStream {}
 -interface MediaSource {}
 diff --git a/index.d.ts b/index.d.ts
-index d2a1e585d4df0ede4fec4672f82de7728f6a1220..9e934734fb3fbece67b7d027b668690c6842d5e8 100644
+index d2a1e585d4df0ede4fec4672f82de7728f6a1220..f696bdd3fa88a02097814672142a37243b2fef23 100644
 --- a/index.d.ts
 +++ b/index.d.ts
 @@ -4,33 +4,6 @@
@@ -298,10 +298,50 @@ index d2a1e585d4df0ede4fec4672f82de7728f6a1220..9e934734fb3fbece67b7d027b668690c
      // Custom components
      function cloneElement<P>(
          element: FunctionComponentElement<P>,
-@@ -1976,152 +1870,7 @@ declare namespace React {
-      */
-     interface SyntheticEvent<T = Element, E = Event> extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}
+@@ -893,8 +787,6 @@ declare namespace React {
+     // Component API
+     // ----------------------------------------------------------------------
  
+-    type ReactInstance = Component<any> | Element;
+-
+     // Base component for plain JS classes
+     interface Component<P = {}, S = {}, SS = any> extends ComponentLifecycle<P, S, SS> {}
+     class Component<P, S> {
+@@ -1945,2050 +1837,14 @@ declare namespace React {
+      */
+     function captureOwnerStack(): string | null;
+ 
+-    //
+-    // Event System
+-    // ----------------------------------------------------------------------
+-    // TODO: change any to unknown when moving to TS v3
+-    interface BaseSyntheticEvent<E = object, C = any, T = any> {
+-        nativeEvent: E;
+-        currentTarget: C;
+-        target: T;
+-        bubbles: boolean;
+-        cancelable: boolean;
+-        defaultPrevented: boolean;
+-        eventPhase: number;
+-        isTrusted: boolean;
+-        preventDefault(): void;
+-        isDefaultPrevented(): boolean;
+-        stopPropagation(): void;
+-        isPropagationStopped(): boolean;
+-        persist(): void;
+-        timeStamp: number;
+-        type: string;
+-    }
+-
+-    /**
+-     * currentTarget - a reference to the element on which the event listener is registered.
+-     *
+-     * target - a reference to the element from which the event was originally dispatched.
+-     * This might be a child element to the element on which the event listener is registered.
+-     * If you thought this should be `EventTarget & T`, see https://github.com/DefinitelyTyped/DefinitelyTyped/issues/11508#issuecomment-256045682
+-     */
+-    interface SyntheticEvent<T = Element, E = Event> extends BaseSyntheticEvent<E, EventTarget & T, EventTarget> {}
+-
 -    interface ClipboardEvent<T = Element> extends SyntheticEvent<T, NativeClipboardEvent> {
 -        clipboardData: DataTransfer;
 -    }
@@ -448,14 +488,15 @@ index d2a1e585d4df0ede4fec4672f82de7728f6a1220..9e934734fb3fbece67b7d027b668690c
 -        propertyName: string;
 -        pseudoElement: string;
 -    }
-+    
- 
+-
      //
      // Event Handler Types
-@@ -2131,1864 +1880,12 @@ declare namespace React {
+     // ----------------------------------------------------------------------
  
-     type ReactEventHandler<T = Element> = EventHandler<SyntheticEvent<T>>;
- 
+-    type EventHandler<E extends SyntheticEvent<any>> = { bivarianceHack(event: E): void }["bivarianceHack"];
+-
+-    type ReactEventHandler<T = Element> = EventHandler<SyntheticEvent<T>>;
+-
 -    type ClipboardEventHandler<T = Element> = EventHandler<ClipboardEvent<T>>;
 -    type CompositionEventHandler<T = Element> = EventHandler<CompositionEvent<T>>;
 -    type DragEventHandler<T = Element> = EventHandler<DragEvent<T>>;
@@ -471,8 +512,7 @@ index d2a1e585d4df0ede4fec4672f82de7728f6a1220..9e934734fb3fbece67b7d027b668690c
 -    type AnimationEventHandler<T = Element> = EventHandler<AnimationEvent<T>>;
 -    type ToggleEventHandler<T = Element> = EventHandler<ToggleEvent<T>>;
 -    type TransitionEventHandler<T = Element> = EventHandler<TransitionEvent<T>>;
-+    
- 
+-
      //
      // Props / DOM Attributes
      // ----------------------------------------------------------------------
@@ -2318,7 +2358,7 @@ index d2a1e585d4df0ede4fec4672f82de7728f6a1220..9e934734fb3fbece67b7d027b668690c
      //
      // Error Interfaces
      // ----------------------------------------------------------------------
-@@ -4038,188 +1935,7 @@ declare namespace React {
+@@ -4038,188 +1894,7 @@ declare namespace React {
          interface IntrinsicClassAttributes<T> extends React.ClassAttributes<T> {}
  
          interface IntrinsicElements {
