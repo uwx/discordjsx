@@ -1,0 +1,54 @@
+{
+    "name": "discordjsx",
+    "version": "0.0.1",
+    "description": "React for discord.js",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "tsc",
+        "publish-lib": "npm run build && npm publish",
+        "publish-beta": "npm run build && npm publish --tag beta",
+        "publish-dryrun": "npm run build && npm publish --dry-run"
+    },
+    "devDependencies": {
+        "@types/react": "^19.1.2",
+        "@types/react-reconciler": "^0.31.0",
+        "@types/uuid": "^10.0.0",
+        "typed-emitter": "^2.1.0",
+        "typescript": "5.2.2"
+    },
+    "peerDependencies": {
+        "discord.js": "^14.19.1",
+        "react": "^19.1.0"
+    },
+    "dependencies": {
+        "react-reconciler": "^0.32.0",
+        "uuid": "^11.1.0"
+    },
+    "pnpm": {
+        "patchedDependencies": {
+            "@types/react@19.1.2": "patches/@types__react@19.1.2.patch"
+        }
+    },
+    "keywords": [
+        "react",
+        "jsx",
+        "discord.js",
+        "components",
+        "renderer"
+    ],
+    "author": "Gökçe Deniz null <gokcedenizblue@gmail.com>",
+    "license": "GPL-3.0-only",
+    "bugs": {
+        "url": "https://github.com/TheAlan404/discordjsx/issues"
+    },
+    "homepage": "https://github.com/TheAlan404/discordjsx#readme",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/deniz-blue/discordjsx.git"
+    }
+}

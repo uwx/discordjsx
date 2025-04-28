@@ -1,0 +1,26 @@
+{
+    "include": [
+        "src/**/*",
+    ],
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "bundler",
+        "jsx": "react-jsx",
+        "lib": [
+            "ESNext"
+        ],
+        "paths": {},
+        "baseUrl": ".",
+        "esModuleInterop": true,
+        "declaration": true,
+        "resolveJsonModule": true,
+        "skipLibCheck": true,
+        "allowArbitraryExtensions": true,
+        "isolatedModules": true,
+        "allowSyntheticDefaultImports": true,
+        "allowJs": true,
+        "strict": true,
+        "outDir": "./dist",
+    }
+}
