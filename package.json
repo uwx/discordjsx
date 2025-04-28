@@ -1,5 +1,5 @@
 {
-    "name": "discordjsx",
+    "name": "discord-jsx-renderer",
     "version": "0.0.1",
     "description": "React for discord.js",
     "main": "dist/index.js",
