@@ -4,6 +4,7 @@ import type { HostContainer, InternalNode } from "./types";
 import { ConcurrentRoot } from "react-reconciler/constants.js";
 import EventEmitter from "node:events";
 import type TypedEmitter from "typed-emitter";
+import { version } from "react";
 
 export * from "./types";
 
@@ -13,7 +14,7 @@ export const reconciler = Reconciler(InternalHostConfig);
 reconciler.injectIntoDevTools({
     bundleType: typeof process !== 'undefined' && process.env.NODE_ENV !== 'production' ? 1 : 0,
     rendererPackageName: "discordjsx",
-    version: React.version,
+    version: version,
 });
 
 export type JSXRendererEventMap = {

@@ -16,10 +16,8 @@
         "declaration": true,
         "resolveJsonModule": true,
         "skipLibCheck": true,
-        "allowArbitraryExtensions": true,
         "isolatedModules": true,
         "allowSyntheticDefaultImports": true,
-        "allowJs": true,
         "strict": true,
         "outDir": "./dist",
     }

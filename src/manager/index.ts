@@ -34,5 +34,3 @@ export class DJSXRendererManager {
         this.renderers.forEach((renderer) => renderer.dispatchInteraction(int));
     }
 }
-
-export const renderers = new DJSXRendererManager();
