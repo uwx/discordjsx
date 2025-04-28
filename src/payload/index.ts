@@ -45,7 +45,7 @@ export class PayloadBuilder {
         return {
             flags,
             payload: {
-                components,
+                components: components as any,
                 content: node.props.v2 ? undefined : this.getText(node),
             },
             eventHandlers: this.eventHandlers,
