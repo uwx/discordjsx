@@ -5,6 +5,7 @@ import type { SelectProps } from "./select";
 import type { ButtonProps } from "./button";
 
 export interface DJSXElements {
+    // main elements
     message: PropsWithChildren<{
         v2?: boolean;
         ephemeral?: boolean;
@@ -15,6 +16,7 @@ export interface DJSXElements {
         onSubmit?: () => void;
     }> & React.JSX.IntrinsicAttributes;
 
+    // layout
     container: PropsWithChildren<{
         color?: ColorResolvable;
         spoiler?: boolean;
@@ -23,7 +25,24 @@ export interface DJSXElements {
     section: PropsWithChildren & React.JSX.IntrinsicAttributes;
     accessory: PropsWithChildren & React.JSX.IntrinsicAttributes;
 
+    // interactive
+    button: PropsWithChildren<ButtonProps> & React.JSX.IntrinsicAttributes;
+    select: SelectProps & React.JSX.IntrinsicAttributes;
+
+    textInput: {
+        label: string;
+        placeholder?: string;
+        customId?: string;
+        paragraph?: boolean;
+        required?: boolean;
+        min?: number;
+        max?: number;
+        value?: string;
+    } & React.JSX.IntrinsicAttributes;
+
+    // content
     text: PropsWithChildren & React.JSX.IntrinsicAttributes;
+
     thumbnail: {
         description?: string;
         spoiler?: boolean;
@@ -42,19 +61,5 @@ export interface DJSXElements {
     separator: {
         divider?: boolean;
         spacing?: "sm" | "lg";
-    } & React.JSX.IntrinsicAttributes;
-
-    button: PropsWithChildren<ButtonProps> & React.JSX.IntrinsicAttributes;
-    select: SelectProps & React.JSX.IntrinsicAttributes;
-
-    textInput: {
-        label: string;
-        placeholder?: string;
-        customId?: string;
-        paragraph?: boolean;
-        required?: boolean;
-        min?: number;
-        max?: number;
-        value?: string;
     } & React.JSX.IntrinsicAttributes;
 };
