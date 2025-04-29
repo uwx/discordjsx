@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Collection, Interaction } from "discord.js";
+import { ChatInputCommandInteraction, Collection, Interaction, ModalSubmitInteraction } from "discord.js";
 import { DJSXRenderer } from "../renderer";
 import { ReactNode } from "react";
 import { v4 } from "uuid";
@@ -9,7 +9,7 @@ export class DJSXRendererManager {
     constructor() {}
 
     create(
-        interaction: ChatInputCommandInteraction,
+        interaction: ChatInputCommandInteraction | ModalSubmitInteraction,
         node?: ReactNode,
     ) {
         const renderer = new DJSXRenderer(
