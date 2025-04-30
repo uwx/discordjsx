@@ -8,7 +8,7 @@
 
 Render react components for Discord interactions (Components V2 supported!)
 
-You can use all sorts of react features including state, context and more.
+You can use all sorts of react features including **state**, **context** and more.
 
 > [Known issue: @types/react IntrinsicElements pollution](#known-issues)
 
@@ -91,125 +91,46 @@ client.on(Events.InteractionCreate, (interaction) => {
     
     djsx.create(interaction, <MyComponent />);
 });
+
+// or if youre using the discordjs.guide way
+module.exports = {
+    data: ...,
+    async execute(interaction) {
+        djsx.create(interaction, <MyComponent />);
+    },
+};
 ```
+
+Since you are 
 
 ## Elements
 
-- Root Elements
-  - [`<message>`](#message)
-  - `<modal>` **WIP**
-- Discord Layout Components
-  - [`<container>`](#container)
-  - [`<section>`](#section)
-  - [`<row>`](#row)
-- Discord Interactive Components
-  - [`<button>`](#button)
-  - [`<select>`](#select)
-  - `<textInput>` **WIP**
-- Discord Content Components
-  - [`<text>`](#text)
-  - [`<separator>`](#separator)
-  - [`<thumbnail>`](#thumbnail)
-  - [`<gallery>`](#gallery)
-  - [`<file>`](#file)
+See [docs/Elements.md](./docs/Elements.md) for a list of the JSX elements you can use to structure your components.
 
----
+## API
 
-### message
+How does it work?
 
-| prop       | type      | description          |
-|------------|-----------|----------------------|
-| ephemeral? | `boolean` | Make reply ephemeral |
-| v2?        | `boolean` | Use Components v2    |
+`discord-jsx-renderer` is compromised of 4 things:
+- `reconciler` (`JSXRenderer`) is a custom react renderer that renders the jsx into our own internal structure and also handles other stuff such as effects/state/hooks managment, re-rendering, commits, scheduling etc.
+- `PayloadBuilder` parses the output from reconciler and builds a discord payload to use for the REST API. It also collects all the event handlers attached to the JSX.
+- `DJSXRenderer` uses reconciler and PayloadBuilder to update the message and handle any attached events like `onClick` on a button component.
+- `DJSXRendererManager` manages multiple renderers and helps dispatch any new interaction events from the `discord.js` client to the renderer. You can use the renderer itself but you will need to handle dispatching interactions and cleanup yourself too.
 
----
+**Custom Ids:** If you use the `customId` prop on a jsx element, the `onClick` will **not** work. This is because the renderer creates its own customId's when they are missing and the generated ones include a prefix identifying that renderer. This was done so that the renderer can use `interaction.deferUpdate` if the react component does not re-render to cause a reply to the message component interaction.
 
-### container
+Generated customId's will be in the format of `djsx:A:B` where `A` is the UUID key of the renderer and B is a random UUID unique to the message component.
 
-| prop     | type                | description            |
-|----------|---------------------|------------------------|
-| color?   | [`ColorResolvable`] | Container accent color |
-| spoiler? | `boolean`           |                        |
+Also, If you want to implement something like hot-reloading:
 
-### row
+```jsx
+let node = <MyComponent />;
+let renderer = new DJSXRenderer(interaction, node);
 
-Action Row component, no props.
-
-### section
-
-```tsx
-<section>
-    <accessory>
-        {/* <thumbnail> or <button> */}
-    </accessory>
-    {/* components... */}
-</section>
+// Somehow get value of updated node
+let newNode = <MyComponent />;
+renderer.setNode(newNode);
 ```
-
----
-
-### button
-
-Children will become button label
-
-| prop      | type                                                | description                                |
-|-----------|-----------------------------------------------------|--------------------------------------------|
-| onClick?  | `(`[`ButtonInteraction`]`) => void`                 | click event                                |
-| style?    | `"primary" \| "secondary" \| "success" \| "danger"` | style if normal button                     |
-| disabled? | `boolean`                                           | disabled state                             |
-| url?      | `string`                                            | if specified, will become a link button    |
-| skuId?    | `string`                                            | if specified, will become a premium button |
-| customId? | `string`                                            | experimental                               |
-
-### select
-
-| prop           | type                                                          | description                                      |
-|----------------|---------------------------------------------------------------|--------------------------------------------------|
-| type           | `"string" \| "user" \| "role" \| "mentionable" \| "channel"`  | Select component type                            |
-| onSelect?      | `(`[`Snowflake`]`[], `[`AnySelectMenuInteraction`]`) => void` | interaction type is derived from `type` prop     |
-| min?           | `number`                                                      | minimum amount                                   |
-| max?           | `number`                                                      | maximum amount                                   |
-| disabled?      | `boolean`                                                     | disabled state                                   |
-| placeholder?   | `string`                                                      |                                                  |
-| options?       | `Omit<`[`APISelectMenuOption`]`, "default">[]`                | only on `type="select"`                          |
-| defaultValues? | [`Snowflake`]`[]`                                             | only on `type="user"` or `"role"` or `"channel"` |
-| defaultValues? | `{ id: `[`Snowflake`]`, type: "user" \| "role" }[]`           | only on `type="mentionable"`                     |
-| channelTypes?  | [`ChannelType`]`[]`                                           | only on `type="channel"`                         |
-| customId?      | `string`                                                      | experimental                                     |
-
----
-
-### text
-
-Children will become content. No props.
-
-### separator
-
-| prop     | type           | description |
-|----------|----------------|-------------|
-| divider? | `boolean`      |             |
-| spacing? | `"sm" \| "lg"` |             |
-
-### thumbnail
-
-| prop         | type      | description |
-|--------------|-----------|-------------|
-| description? | `string`  | alt text    |
-| spoiler?     | `boolean` |             |
-| media?       | `string`  | url         |
-
-### gallery
-
-| prop   | type                        | description   |
-|--------|-----------------------------|---------------|
-| items? | [`APIMediaGalleryItem`]`[]` | gallery items |
-
-### file
-
-| prop     | type      | description               |
-|----------|-----------|---------------------------|
-| file?    | `string`  | url as `attachment://...` |
-| spoiler? | `boolean` |                           |
 
 ## Known Issues
 
@@ -220,12 +141,3 @@ Children will become content. No props.
 - `<modal>`s are still in development
 - Message v1 - `<embed>` not implemented yet
 - Uploading files via components not supported yet
-
-[`ButtonInteraction`]: https://discord.js.org/docs/packages/discord.js/14.19.1/ButtonInteraction:Class
-[`ColorResolvable`]: https://discord.js.org/docs/packages/discord.js/14.19.1/ColorResolvable:TypeAlias
-[`APISelectMenuOption`]: https://discord.js.org/docs/packages/discord.js/14.19.1/APISelectMenuOption:Interface
-[`Snowflake`]: https://discord.js.org/docs/packages/discord.js/14.19.1/Snowflake:TypeAlias
-[`Snowflake`]: https://discord.js.org/docs/packages/discord.js/14.19.1/Snowflake:TypeAlias
-[`AnySelectMenuInteraction`]: https://discord.js.org/docs/packages/discord.js/14.19.1/AnySelectMenuInteraction:TypeAlias
-[`ChannelType`]: https://discord.js.org/docs/packages/discord.js/14.19.1/ChannelType:Enum
-[`APIMediaGalleryItem`]: https://discord.js.org/docs/packages/discord.js/14.19.1/APIMediaGalleryItem:Interface

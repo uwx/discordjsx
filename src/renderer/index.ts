@@ -8,9 +8,10 @@ import { DJSXEventHandlerMap } from "src/types/events";
 import { PayloadBuilder } from "src/payload";
 import { MessagePayloadOutput } from "src/payload/types";
 import { DJSXRendererEventMap } from "./types";
+import { v4 } from "uuid";
 
 export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<DJSXRendererEventMap>) {
-    key?: string;
+    key?: string = v4();
     private renderer: JSXRenderer;
     private events: Partial<DJSXEventHandlerMap> | null = null;
 

@@ -23,6 +23,8 @@ export class DJSXRendererManager {
         });
 
         this.add(renderer);
+
+        return renderer;
     }
     
     add(renderer: DJSXRenderer) {
