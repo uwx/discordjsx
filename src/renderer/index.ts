@@ -1,4 +1,4 @@
-import { MessageFlags, type AnySelectMenuInteraction, type ButtonInteraction, type ChatInputCommandInteraction, type Interaction } from "discord.js";
+import { MessageFlags, ModalSubmitInteraction, type AnySelectMenuInteraction, type ButtonInteraction, type ChatInputCommandInteraction, type Interaction } from "discord.js";
 import { JSXRenderer } from "../reconciler";
 import type { HostContainer } from "../reconciler/types";
 import EventEmitter from "node:events";
@@ -14,7 +14,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
     private renderer: JSXRenderer;
     private events: Partial<DJSXEventHandlerMap> | null = null;
 
-    interaction: ChatInputCommandInteraction;
+    interaction: ChatInputCommandInteraction | ModalSubmitInteraction;
     lastInteraction: ButtonInteraction | AnySelectMenuInteraction | null = null;
 
     private inactivityTimer: NodeJS.Timeout;
@@ -23,7 +23,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
     private DEFER_TIME = 2 * 1000; // actually 3 seconds but we compromise
 
     constructor(
-        interaction: ChatInputCommandInteraction,
+        interaction: ChatInputCommandInteraction | ModalSubmitInteraction,
         node?: React.ReactNode,
         key?: string,
     ) {
