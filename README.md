@@ -8,9 +8,7 @@
 
 Render react components for Discord interactions (Components V2 supported!)
 
-You can use all sorts of react features including **state**, **context** and more.
-
-> [Known issue: @types/react IntrinsicElements pollution](#known-issues)
+You can use all sorts of react features including **state**, **context**, **effects** and more.
 
 ## Example
 
@@ -50,16 +48,29 @@ export const Counter = () => {
 
 ## Installation
 
-Simply install `discord-jsx-renderer` with your package manager of choice:
+Simply install `discord-jsx-renderer` and `react` with your package manager of choice:
 
 ```sh
-pnpm add discord-jsx-renderer
+npm add discord-jsx-renderer react
 ```
+
+For types, install `pure-react-types`:
+
 ```sh
-npm add discord-jsx-renderer
+npm add --save-dev pure-react-types
 ```
-```sh
-yarn add discord-jsx-renderer
+
+Don't install `@types/react` because it has a lot of DOM/HTML types built in that make everything difficult.
+
+Finally, you can add these to your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "types": ["pure-react-types"],
+  },
+}
 ```
 
 ## Usage
@@ -84,14 +95,16 @@ Thats all you need for the setup.
 
 To render a component in reply to a `ChatInputInteraction` (slash command), use `create`:
 
-```tsx
+```jsx
 client.on(Events.InteractionCreate, (interaction) => {
     if(!interaction.isChatInputCommand()) return;
     // Also do command handling logic etc.
     
     djsx.create(interaction, <MyComponent />);
 });
+```
 
+```jsx
 // or if youre using the discordjs.guide way
 module.exports = {
     data: ...,
@@ -101,7 +114,7 @@ module.exports = {
 };
 ```
 
-Since you are 
+You can also reply to `ModalSubmitInteraction`s.
 
 ## Elements
 
@@ -113,7 +126,7 @@ How does it work?
 
 `discord-jsx-renderer` is compromised of 4 things:
 - `reconciler` (`JSXRenderer`) is a custom react renderer that renders the jsx into our own internal structure and also handles other stuff such as effects/state/hooks managment, re-rendering, commits, scheduling etc.
-- `PayloadBuilder` parses the output from reconciler and builds a discord payload to use for the REST API. It also collects all the event handlers attached to the JSX.
+- `PayloadBuilder` parses the output from reconciler and builds a discord payload to use for the REST API. It also collects all the event handlers attached to the JSX. *If you are going to use it, please make a new class per message/payload*
 - `DJSXRenderer` uses reconciler and PayloadBuilder to update the message and handle any attached events like `onClick` on a button component.
 - `DJSXRendererManager` manages multiple renderers and helps dispatch any new interaction events from the `discord.js` client to the renderer. You can use the renderer itself but you will need to handle dispatching interactions and cleanup yourself too.
 
@@ -136,8 +149,6 @@ renderer.setNode(newNode);
 
 > AKA To-Do
 
-- `@types/react` pollutes `React.JSX.IntrinsicElements`
-  - going to publish a new package for react types without DOM or HTML stuff
 - `<modal>`s are still in development
 - Message v1 - `<embed>` not implemented yet
 - Uploading files via components not supported yet

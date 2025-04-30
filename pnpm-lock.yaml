@@ -26,9 +26,6 @@ importers:
         specifier: ^11.1.0
         version: 11.1.0
     devDependencies:
-      '@types/react':
-        specifier: ^19.1.2
-        version: 19.1.2(patch_hash=lxasvvavtij55dijgdeshwuxz4)
       '@types/react-reconciler':
         specifier: ^0.31.0
         version: 0.31.0(@types/react@19.1.2(patch_hash=lxasvvavtij55dijgdeshwuxz4))
@@ -38,6 +35,9 @@ importers:
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
+      pure-react-types:
+        specifier: ^0.1.0
+        version: 0.1.0
       typed-emitter:
         specifier: ^2.1.0
         version: 2.1.0
@@ -133,6 +133,9 @@ packages:
 
   magic-bytes.js@1.12.1:
     resolution: {integrity: sha512-ThQLOhN86ZkJ7qemtVRGYM+gRgR8GEXNli9H/PMvpnZsE44Xfh3wx9kGJaldg314v85m+bFW6WBMaVHJc/c3zA==}
+
+  pure-react-types@0.1.0:
+    resolution: {integrity: sha512-/w982GcyWzuGVKkPBxQNsKTLronnFqgpi0xssB6QVpoDPWSdNrxq7z+5x22tgL0XRssklrW5NYFzhS5tspW6Jw==}
 
   react-reconciler@0.32.0:
     resolution: {integrity: sha512-2NPMOzgTlG0ZWdIf3qG+dcbLSoAc/uLfOwckc3ofy5sSK0pLJqnQLpUFxvGcN2rlXSjnVtGeeFLNimCQEj5gOQ==}
@@ -297,6 +300,8 @@ snapshots:
   lodash@4.17.21: {}
 
   magic-bytes.js@1.12.1: {}
+
+  pure-react-types@0.1.0: {}
 
   react-reconciler@0.32.0(react@19.1.0):
     dependencies:
