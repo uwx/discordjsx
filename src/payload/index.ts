@@ -3,6 +3,7 @@ import type { InternalNode } from "../reconciler/types";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "src/types/events";
 import { InteractionMessageFlags, MessagePayloadOutput, ModalPayloadOutput } from "./types";
+import { globalSuspense } from "src/intrinsics/elements";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -33,7 +34,8 @@ export class PayloadBuilder {
         return node.children.map(this.getText.bind(this)).join("");
     }
 
-    createMessage(node: InternalNode): MessagePayloadOutput {
+    createMessage(node: InternalNode): MessagePayloadOutput | { suspended: true } {
+        if (node.type === globalSuspense) return { suspended: true };
         if (node.type !== "message") throw new Error("Element isn't <message>");
 
         let flags: InteractionMessageFlags[] = [];
