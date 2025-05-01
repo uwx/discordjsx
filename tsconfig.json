@@ -20,5 +20,6 @@
         "allowSyntheticDefaultImports": true,
         "strict": true,
         "outDir": "./dist",
+        "composite": true
     }
 }
