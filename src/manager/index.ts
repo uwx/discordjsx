@@ -18,7 +18,6 @@ export class DJSXRendererManager {
         );
 
         renderer.on("inactivity", () => {
-            renderer.setNode(null);
             this.renderers.delete(renderer.key!);
         });
 

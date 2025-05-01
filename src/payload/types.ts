@@ -1,5 +1,8 @@
 import type { APIModalInteractionResponseCallbackData, BaseMessageOptions, MessageFlags } from "discord.js";
-import { DJSXEventHandlerMap } from "src/types/events";
+
+export type PayloadBuilderOptions = {
+    disabled?: boolean;
+};
 
 export type InteractionMessageFlags = MessageFlags.Ephemeral
     | MessageFlags.SuppressEmbeds
@@ -7,12 +10,10 @@ export type InteractionMessageFlags = MessageFlags.Ephemeral
     | MessageFlags.IsComponentsV2;
 
 export type MessagePayloadOutput = {
-    payload: BaseMessageOptions;
+    options: BaseMessageOptions;
     flags: InteractionMessageFlags[];
-    eventHandlers: Pick<DJSXEventHandlerMap, "button" | "select">;
 };
 
 export type ModalPayloadOutput = {
     payload: APIModalInteractionResponseCallbackData;
-    eventHandlers: Pick<DJSXEventHandlerMap, "modalSubmit">;
 };

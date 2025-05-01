@@ -10,7 +10,7 @@
         "lib": [
             "ESNext"
         ],
-        "paths": {},
+        "types": ["pure-react-types"],
         "baseUrl": ".",
         "esModuleInterop": true,
         "declaration": true,

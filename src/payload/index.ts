@@ -16,6 +16,8 @@ type InstrinsicNodesMap = {
 type IntrinsicNode = InstrinsicNodesMap[keyof React.JSX.IntrinsicElements];
 
 export class PayloadBuilder {
+    private used?: boolean = false;
+
     eventHandlers: DJSXEventHandlerMap = {
         button: new Map(),
         select: new Map(),
@@ -25,8 +27,19 @@ export class PayloadBuilder {
     prefixCustomId: () => string = () => `djsx:auto:`;
     createCustomId = () => `${this.prefixCustomId()}:${v4()}`;
 
+    private everythingDisabled?: boolean = false;
+
     constructor(prefixCustomId?: () => string) {
         if (prefixCustomId) this.prefixCustomId = prefixCustomId;
+    }
+
+    withCustomIdPrefix(prefixCustomId: () => string) {
+        this.prefixCustomId = prefixCustomId;
+        return this;
+    }
+
+    withEverythingDisabled(everythingDisabled?: boolean) {
+        this.everythingDisabled = everythingDisabled;
     }
 
     private getText(node: InternalNode): string {
@@ -35,6 +48,9 @@ export class PayloadBuilder {
     }
 
     createMessage(node: InternalNode): MessagePayloadOutput {
+        if(this.used) throw new Error("You cannot re-use PayloadBuilder - please create a new one");
+        this.used = true;
+
         if (node.type !== "message") throw new Error("Element isn't <message>");
 
         let flags: InteractionMessageFlags[] = [];
@@ -45,15 +61,17 @@ export class PayloadBuilder {
 
         return {
             flags,
-            payload: {
+            options: {
                 components: components as any,
                 content: node.props.v2 ? undefined : this.getText(node),
             },
-            eventHandlers: this.eventHandlers,
         };
     }
 
     createModal(node: InternalNode): ModalPayloadOutput {
+        if(this.used) throw new Error("You cannot re-use PayloadBuilder - please create a new one");
+        this.used = true;
+
         const custom_id = node.props.customId || this.createCustomId();
         const components = this.toDiscordComponentsArray(node.children);
 
@@ -66,7 +84,6 @@ export class PayloadBuilder {
                 components: components as any,
                 custom_id,
             },
-            eventHandlers: this.eventHandlers,
         };
     }
 
@@ -184,7 +201,7 @@ export class PayloadBuilder {
             custom_id,
             min_values: node.props.min,
             max_values: node.props.max,
-            disabled: node.props.disabled,
+            disabled: this.everythingDisabled ? true : node.props.disabled,
             placeholder: node.props.placeholder,
             ...(node.props.type == "string" ? {
                 options: node.children.map(child => ({

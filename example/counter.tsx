@@ -1,3 +1,4 @@
+import "../"
 import React, { useState } from "react";
 
 export const Counter = () => {
@@ -21,6 +22,11 @@ export const Counter = () => {
                         onClick={() => setCount(c => c + 1)}
                     >
                         +1
+                    </button>
+                </row>
+                <row>
+                    <button style="secondary">
+                        No Event Handler
                     </button>
                 </row>
             </container>
