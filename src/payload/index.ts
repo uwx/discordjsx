@@ -3,6 +3,7 @@ import type { InternalNode } from "../reconciler/types";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "src/types/events";
 import { InteractionMessageFlags, MessagePayloadOutput, ModalPayloadOutput } from "./types";
+import { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "src/intrinsics/elements/button";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -153,16 +154,17 @@ export class PayloadBuilder {
         );
 
         const custom_id = !("skuId" in node.props || "url" in node.props) ? (node.props.customId || this.createCustomId()) : undefined;
-        if (custom_id && (node.props as any).onClick) this.eventHandlers.button.set(custom_id, (node.props as any).onClick);
+        if (custom_id && (node.props as DefaultButtonProps).onClick) this.eventHandlers.button.set(custom_id, (node.props as DefaultButtonProps).onClick as any);
 
         return {
             type: 2,
             style,
             label: this.getText(node),
             custom_id,
-            sku_id: (node.props as any).skuId,
-            url: (node.props as any).url,
+            sku_id: (node.props as PremiumButtonProps).skuId,
+            url: (node.props as LinkButtonProps).url,
             disabled: node.props.disabled,
+            emoji: node.props.emoji,
         };
     }
 

@@ -1,9 +1,10 @@
-import type { ButtonInteraction } from "discord.js";
+import type { APIMessageComponentEmoji, ButtonInteraction } from "discord.js";
 import type { BaseInteractableProps } from "./base";
-import { DJSXEventHandler } from "src/types/events";
+import type { DJSXEventHandler } from "src/types/events";
 
 export interface BaseButtonProps extends BaseInteractableProps {
     disabled?: boolean;
+    emoji?: APIMessageComponentEmoji;
     // TODO: emoji
 };
 
