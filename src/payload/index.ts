@@ -87,7 +87,7 @@ export class PayloadBuilder {
                 return this.toDiscordButtonComponent(node);
             case "select":
                 return this.toDiscordSelectComponent(node);
-            case "textInput":
+            case "text-input":
                 return this.toDiscordTextInputComponent(node);
             case "section":
                 const nonAccessory = node.children.filter(x => x.type !== "accessory");
@@ -203,7 +203,7 @@ export class PayloadBuilder {
         };
     }
 
-    private toDiscordTextInputComponent(node: InstrinsicNodesMap["textInput"]) {
+    private toDiscordTextInputComponent(node: InstrinsicNodesMap["text-input"]) {
         return {
             type: 4,
             custom_id: node.props.customId,

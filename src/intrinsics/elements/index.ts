@@ -30,7 +30,7 @@ export interface DJSXElements {
     select: SelectProps & React.JSX.IntrinsicAttributes;
     option: Omit<APISelectMenuOption, "default"> & React.JSX.IntrinsicAttributes;
 
-    textInput: {
+    'text-input': {
         label: string;
         placeholder?: string;
         customId?: string;
