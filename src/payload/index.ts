@@ -1,4 +1,4 @@
-import { type APIMessageComponent, ComponentType, MessageFlags, resolveColor } from "discord.js";
+import { APIMediaGalleryItem, type APIMessageComponent, ComponentType, MessageFlags, resolveColor } from "discord.js";
 import type { InternalNode } from "../reconciler/types";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "src/types/events";
@@ -118,11 +118,11 @@ export class PayloadBuilder {
                     spoiler: node.props.spoiler,
                 };
             case "gallery":
-                if (!node.props.items) return null;
+                if (!node.props.children) return null;
 
                 return {
                     type: 12,
-                    items: node.props.items,
+                    items: node.children.map(child => child.props as APIMediaGalleryItem),
                 };
             case "file":
                 return {

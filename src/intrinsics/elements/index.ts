@@ -50,9 +50,8 @@ export interface DJSXElements {
         media?: UnfurledMediaResolvable;
     } & React.JSX.IntrinsicAttributes;
 
-    gallery: {
-        items?: APIMediaGalleryItem[];
-    } & React.JSX.IntrinsicAttributes;
+    gallery: PropsWithChildren & React.JSX.IntrinsicAttributes;
+    'gallery-item': APIMediaGalleryItem & React.JSX.IntrinsicAttributes;
 
     file: {
         file: UnfurledMediaResolvable;
