@@ -28,7 +28,10 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
 
         this.renderer.on("render", this.onRender.bind(this));
         this.renderer.on("renderError", this.handleError.bind(this));
-        this.updater.on("tokenExpired", () => this.emit("inactivity"));
+        this.updater.on("tokenExpired", () => {
+            this.setNode(null);
+            this.emit("inactivity");
+        });
     }
 
     private node: React.ReactNode = null;
@@ -107,5 +110,9 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
             this.emit("fatalError", e as Error);
             console.log("[discordjsx/renderer] (fatal) Error", e);
         }
+    }
+
+    disable() {
+        return this.updater.disable();
     }
 }

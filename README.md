@@ -120,6 +120,66 @@ You can also reply to `ModalSubmitInteraction`s.
 
 See [docs/Elements.md](./docs/Elements.md) for a list of the JSX elements you can use to structure your components.
 
+## Features
+
+### React Features
+
+We have support for almost all of React 19 features. The ones we tested are:
+- Hooks
+- State
+- Context
+- FC
+
+We are in the process of adding Suspense support.
+
+Components can also re-render without any interaction event like so:
+
+```tsx
+const [counter, setCounter] = useState(0);
+
+useEffect(() => {
+    let i = setInterval(() => {
+        setCounter(c => c + 1);
+    }, 10 * 1000);
+    return () => clearInterval(i);
+}, []);
+
+return (
+    <text>
+        {counter}
+    </text>
+);
+```
+
+### Event Handlers
+
+Buttons and Selects can have inline event handlers:
+
+```jsx
+<button onClick={handler}>
+    My Button
+</button>
+```
+
+If they don't have an event handler or dont cause a re-render, `discord-jsx-renderer` calls `deferUpdate`
+
+### Auto-Disabling
+
+Any `Interaction` token is valid for up to **15 minutes**. `discord-jsx-renderer` will update the message to have every component disabled just before the interaction token expires for UX purposes.
+
+You can also use the below snippet to disable components in rendered messages manually before exiting the nodejs process:
+
+```js
+const beforeExit = () => {
+    djsx.disable()
+        .catch(e => console.log(e))
+        .finally(() => process.exit(0));
+};
+
+process.on("SIGTERM", beforeExit);
+process.on("SIGINT", beforeExit);
+```
+
 ## API
 
 How does it work?
@@ -134,7 +194,9 @@ How does it work?
 
 Generated customId's will be in the format of `djsx:A:B` where `A` is the UUID key of the renderer and B is a random UUID unique to the message component.
 
-Also, If you want to implement something like hot-reloading:
+### Hot-Reloading
+
+You can replace rendered nodes to have some sort of hot-reloading functionality.
 
 ```jsx
 let node = <MyComponent />;

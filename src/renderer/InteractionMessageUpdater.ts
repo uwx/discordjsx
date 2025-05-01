@@ -90,15 +90,16 @@ export class InteractionMessageUpdater extends (EventEmitter as new () => TypedE
     }
 
     async disable() {
-        if(this.lastPayload) {
-            try {
-                await this._updateMessage({
-                    ...this.lastPayload,
-                    options: markComponentsDisabled(this.lastPayload.options),
-                });
-            } catch(e) {
-                console.log(e);
-            }
-        };
+        if(!this.lastPayload) return;
+        if(this.tokenExpired) return;
+
+        try {
+            await this._updateMessage({
+                ...this.lastPayload,
+                options: markComponentsDisabled(this.lastPayload.options),
+            });
+        } catch(e) {
+            console.log(e);
+        }
     }
 };

@@ -1,8 +1,9 @@
-import { APIMediaGalleryItem, type APIMessageComponent, ComponentType, MessageFlags, resolveColor } from "discord.js";
+import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageTopLevelComponent } from "discord.js";
+import { ComponentType, MessageFlags, resolveColor } from "discord.js";
 import type { InternalNode } from "../reconciler/types";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "src/types/events";
-import { InteractionMessageFlags, MessagePayloadOutput, ModalPayloadOutput } from "./types";
+import type { InteractionMessageFlags, MessagePayloadOutput, ModalPayloadOutput } from "./types";
 import { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "src/intrinsics/elements/button";
 
 type InstrinsicNodesMap = {
@@ -165,7 +166,24 @@ export class PayloadBuilder {
         }
     }
 
-    private toDiscordButtonComponent(node: InstrinsicNodesMap["button"]) {
+    private asAPIMessageTopLevelComponent(node: InternalNode): APIMessageTopLevelComponent {
+        let c = this.toDiscordComponent(node);
+        if(!c) throw new Error();
+
+        if(
+            c.type == ComponentType.StringSelect
+            || c.type == ComponentType.UserSelect
+            || c.type == ComponentType.RoleSelect
+            || c.type == ComponentType.MentionableSelect
+            || c.type == ComponentType.ChannelSelect
+            || c.type == ComponentType.Button
+            || c.type == ComponentType.Thumbnail
+        ) throw new Error();
+
+        return c;
+    }
+
+    private toDiscordButtonComponent(node: InstrinsicNodesMap["button"]): APIButtonComponent {
         let style = "skuId" in node.props ? 6 : (
             "url" in node.props ? 5 : (["primary", "secondary", "success", "danger"].indexOf(node.props.style || "primary") + 1)
         );

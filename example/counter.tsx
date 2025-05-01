@@ -1,8 +1,15 @@
 import "../"
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 export const Counter = () => {
     const [count, setCount] = useState(0);
+
+    useEffect(() => {
+        const i = setInterval(() => {
+            setCount(c => c+1);
+        }, 10 * 1000);
+        return () => clearInterval(i);
+    }, []);
 
     return (
         <message v2 ephemeral>

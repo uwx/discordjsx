@@ -34,4 +34,8 @@ export class DJSXRendererManager {
     dispatchInteraction(int: Interaction) {
         this.renderers.forEach((renderer) => renderer.dispatchInteraction(int));
     }
+
+    disable() {
+        return Promise.all(this.renderers.map((renderer) => renderer.disable()));
+    }
 }

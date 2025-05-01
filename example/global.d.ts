@@ -1,1 +1,1 @@
-// import "pure-react-types"
+import "pure-react-types"
