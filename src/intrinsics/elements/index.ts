@@ -1,4 +1,4 @@
-import type { APIMediaGalleryItem, ColorResolvable } from "discord.js";
+import type { APIMediaGalleryItem, APISelectMenuOption, ColorResolvable } from "discord.js";
 import type { PropsWithChildren } from "react";
 import type { UnfurledMediaResolvable } from "./base";
 import type { SelectProps } from "./select";
@@ -28,8 +28,9 @@ export interface DJSXElements {
     // interactive
     button: PropsWithChildren<ButtonProps> & React.JSX.IntrinsicAttributes;
     select: SelectProps & React.JSX.IntrinsicAttributes;
+    option: Omit<APISelectMenuOption, "default"> & React.JSX.IntrinsicAttributes;
 
-    textInput: {
+    'text-input': {
         label: string;
         placeholder?: string;
         customId?: string;
@@ -49,9 +50,8 @@ export interface DJSXElements {
         media?: UnfurledMediaResolvable;
     } & React.JSX.IntrinsicAttributes;
 
-    gallery: {
-        items?: APIMediaGalleryItem[];
-    } & React.JSX.IntrinsicAttributes;
+    gallery: PropsWithChildren & React.JSX.IntrinsicAttributes;
+    'gallery-item': APIMediaGalleryItem & React.JSX.IntrinsicAttributes;
 
     file: {
         file: UnfurledMediaResolvable;

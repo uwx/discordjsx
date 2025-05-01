@@ -1,8 +1,9 @@
-import { type APIMessageComponent, ComponentType, MessageFlags, resolveColor } from "discord.js";
+import { APIMediaGalleryItem, type APIMessageComponent, ComponentType, MessageFlags, resolveColor } from "discord.js";
 import type { InternalNode } from "../reconciler/types";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "src/types/events";
 import { InteractionMessageFlags, MessagePayloadOutput, ModalPayloadOutput } from "./types";
+import { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "src/intrinsics/elements/button";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -87,7 +88,7 @@ export class PayloadBuilder {
                 return this.toDiscordButtonComponent(node);
             case "select":
                 return this.toDiscordSelectComponent(node);
-            case "textInput":
+            case "text-input":
                 return this.toDiscordTextInputComponent(node);
             case "section":
                 const nonAccessory = node.children.filter(x => x.type !== "accessory");
@@ -117,11 +118,11 @@ export class PayloadBuilder {
                     spoiler: node.props.spoiler,
                 };
             case "gallery":
-                if (!node.props.items) return null;
+                if (!node.children) return null;
 
                 return {
                     type: 12,
-                    items: node.props.items,
+                    items: node.children.map(child => child.props as APIMediaGalleryItem),
                 };
             case "file":
                 return {
@@ -153,16 +154,17 @@ export class PayloadBuilder {
         );
 
         const custom_id = !("skuId" in node.props || "url" in node.props) ? (node.props.customId || this.createCustomId()) : undefined;
-        if (custom_id && (node.props as any).onClick) this.eventHandlers.button.set(custom_id, (node.props as any).onClick);
+        if (custom_id && (node.props as DefaultButtonProps).onClick) this.eventHandlers.button.set(custom_id, (node.props as DefaultButtonProps).onClick as any);
 
         return {
             type: 2,
             style,
             label: this.getText(node),
             custom_id,
-            sku_id: (node.props as any).skuId,
-            url: (node.props as any).url,
+            sku_id: (node.props as PremiumButtonProps).skuId,
+            url: (node.props as LinkButtonProps).url,
             disabled: node.props.disabled,
+            emoji: node.props.emoji,
         };
     }
 
@@ -185,9 +187,12 @@ export class PayloadBuilder {
             disabled: node.props.disabled,
             placeholder: node.props.placeholder,
             ...(node.props.type == "string" ? {
-                options: node.props.options.map(option => ({
-                    ...option,
-                    default: (node.props.defaultValues as string[] | undefined)?.includes(option.value),
+                options: node.children.map(child => ({
+                    label: (child as InstrinsicNodesMap["option"]).props.label,
+                    value: (child as InstrinsicNodesMap["option"]).props.value,
+                    description: (child as InstrinsicNodesMap["option"]).props.description,
+                    emoji: (child as InstrinsicNodesMap["option"]).props.emoji,
+                    default: (node.props.defaultValues as string[] | undefined)?.includes((child as InstrinsicNodesMap["option"]).props.value),
                 })),
             } : {}),
             ...(node.props.type == "user" || node.props.type == "role" ? {
@@ -203,7 +208,7 @@ export class PayloadBuilder {
         };
     }
 
-    private toDiscordTextInputComponent(node: InstrinsicNodesMap["textInput"]) {
+    private toDiscordTextInputComponent(node: InstrinsicNodesMap["text-input"]) {
         return {
             type: 4,
             custom_id: node.props.customId,
