@@ -118,7 +118,7 @@ export class PayloadBuilder {
                     spoiler: node.props.spoiler,
                 };
             case "gallery":
-                if (!node.props.children) return null;
+                if (!node.children) return null;
 
                 return {
                     type: 12,
