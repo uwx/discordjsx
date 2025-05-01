@@ -185,9 +185,9 @@ export class PayloadBuilder {
             disabled: node.props.disabled,
             placeholder: node.props.placeholder,
             ...(node.props.type == "string" ? {
-                options: node.props.options.map(option => ({
-                    ...option,
-                    default: (node.props.defaultValues as string[] | undefined)?.includes(option.value),
+                options: node.children.map(child => ({
+                    ...child.props,
+                    default: (node.props.defaultValues as string[] | undefined)?.includes((child as InstrinsicNodesMap["option"]).props.value),
                 })),
             } : {}),
             ...(node.props.type == "user" || node.props.type == "role" ? {
