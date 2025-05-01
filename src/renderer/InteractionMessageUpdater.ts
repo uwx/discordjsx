@@ -44,7 +44,6 @@ export class InteractionMessageUpdater extends (EventEmitter as new () => TypedE
             setTimeout(async () => {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.deferUpdate();
-                    console.log("deferUpdate called on component interaction");
                 }
             }, REPLY_TIMEOUT);
         }
