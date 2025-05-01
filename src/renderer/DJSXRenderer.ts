@@ -28,6 +28,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
 
         this.renderer.on("render", this.onRender.bind(this));
         this.renderer.on("renderError", this.handleError.bind(this));
+        this.updater.on("error", (e) => this.handleError(e, "updater"));
         this.updater.on("tokenExpired", () => {
             this.setNode(null);
             this.emit("inactivity");
@@ -83,32 +84,28 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
             let builder = new PayloadBuilder(this.prefixCustomId.bind(this));
             let payload = builder.createMessage(container.node);
             this.events = builder.eventHandlers;
-            this.updater.updateMessage(payload);
+            this.updater.updateMessageDebounced(payload);
         } catch (e) {
-            this.handleError(e as Error);
+            this.handleError(e as Error, "renderer");
         };
     }
 
-    async handleError(error: Error) {
-        try {
-            this.emit("error", error);
+    async handleError(error: Error, source?: "renderer" | "updater") {
+        console.log(`[discordjsx/${source}] Error:`, error);
+        this.emit("renderError", error);
 
+        try {
             const content = `-# discordjsx\n:warning: **Error**\n\`\`\`\n${error.toString()}\n\`\`\``;
 
-            await this.updater.updateMessage({
-                flags: [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2],
+            await this.updater._updateMessage({
+                flags: [MessageFlags.Ephemeral],
                 options: {
-                    components: [
-                        {
-                            type: 10,
-                            content,
-                        }
-                    ],
+                    content,
                 },
             });
         } catch (e) {
             this.emit("fatalError", e as Error);
-            console.log("[discordjsx/renderer] (fatal) Error", e);
+            console.log("[discordjsx] (fatal) Error:", e);
         }
     }
 

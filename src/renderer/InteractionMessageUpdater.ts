@@ -17,6 +17,7 @@ export type MessageUpdateableInteraction = ChatInputCommandInteraction | ModalSu
 export type InteractionMessageUpdaterEventMap = {
     tokenExpired: () => void;
     messageUpdated: (method: "reply" | "editReply" | "update") => void;
+    error: (e: Error) => void;
 };
 
 export class InteractionMessageUpdater extends (EventEmitter as new () => TypedEventEmitter<InteractionMessageUpdaterEventMap>) {
@@ -49,16 +50,26 @@ export class InteractionMessageUpdater extends (EventEmitter as new () => TypedE
         }
     }
 
-    updateMessage = debounceAsync(this._updateMessage);
+    updateMessageDebounced = debounceAsync(async (payload) => {
+        try {
+            await this.updateMessage(payload);
+        } catch(e) {
+            this.emit("error", e as Error);
+        }
+    });
 
     private lastPayload: MessagePayloadOutput | null = null;
-    private async _updateMessage(payload: MessagePayloadOutput) {
+    async updateMessage(payload: MessagePayloadOutput) {
         if(this.tokenExpired) {
             console.log("[discord-jsx-renderer] Tried to updateMessage on an expired interaction");
             return;
         };
 
         this.lastPayload = payload;
+        await this._updateMessage(payload);
+    }
+
+    async _updateMessage(payload: MessagePayloadOutput) {
         if (this.interaction.replied || this.interaction.deferred) {
             await this.interaction.editReply(payload.options);
             this.emit("messageUpdated", "editReply");
@@ -93,7 +104,7 @@ export class InteractionMessageUpdater extends (EventEmitter as new () => TypedE
         if(this.tokenExpired) return;
 
         try {
-            await this._updateMessage({
+            await this.updateMessage({
                 ...this.lastPayload,
                 options: markComponentsDisabled(this.lastPayload.options),
             });
