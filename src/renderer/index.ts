@@ -9,7 +9,6 @@ import { PayloadBuilder } from "src/payload";
 import { MessagePayloadOutput } from "src/payload/types";
 import { DJSXRendererEventMap } from "./types";
 import { v4 } from "uuid";
-import { inspect } from "node:util";
 
 export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<DJSXRendererEventMap>) {
     key?: string = v4();
@@ -171,7 +170,6 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
         } catch (e) {
             this.emit("fatalError", e as Error);
             console.log("[discordjsx/renderer] (fatal) Error", e);
-            console.log(inspect(e.requestBody.json.data, { depth: Infinity }))
         }
     }
 }
