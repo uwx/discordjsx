@@ -1,6 +1,6 @@
 import type { APISelectMenuOption, ChannelSelectMenuInteraction, ChannelType, MentionableSelectMenuInteraction, RoleSelectMenuInteraction, Snowflake, StringSelectMenuInteraction, UserSelectMenuInteraction } from "discord.js";
 import type { BaseInteractableProps } from "./base";
-import type { DJSXEventHandler } from "src/types/events";
+import type { DJSXEventHandler } from "../../types/events";
 import type { PropsWithChildren } from "react";
 
 export interface BaseSelectProps extends BaseInteractableProps {

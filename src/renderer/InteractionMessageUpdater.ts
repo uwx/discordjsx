@@ -1,9 +1,9 @@
 import { AnySelectMenuInteraction, ButtonInteraction, ChatInputCommandInteraction, ModalSubmitInteraction } from "discord.js";
-import { MessagePayloadOutput } from "src/payload/types";
+import { MessagePayloadOutput } from "../payload/types";
 import TypedEventEmitter from "typed-emitter";
 import EventEmitter from "node:events";
-import { debounceAsync } from "src/utils/debounceAsync";
-import { markComponentsDisabled } from "src/utils/markComponentsDisabled";
+import { debounceAsync } from "../utils/debounceAsync";
+import { markComponentsDisabled } from "../utils/markComponentsDisabled";
 
 const INTERACTION_TOKEN_EXPIRY = 15 * 60 * 1000;
 // const INTERACTION_TOKEN_EXPIRY = 40 * 1000;

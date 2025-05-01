@@ -2,9 +2,9 @@ import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIM
 import { ComponentType, MessageFlags, resolveColor } from "discord.js";
 import type { InternalNode } from "../reconciler/types";
 import { v4 } from "uuid";
-import type { DJSXEventHandlerMap } from "src/types/events";
+import type { DJSXEventHandlerMap } from "../types/events";
 import type { InteractionMessageFlags, MessagePayloadOutput, ModalPayloadOutput } from "./types";
-import { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "src/intrinsics/elements/button";
+import { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {

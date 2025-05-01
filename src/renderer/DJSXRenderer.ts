@@ -2,11 +2,11 @@ import TypedEventEmitter from "typed-emitter";
 import { EventEmitter } from "node:events";
 import { DJSXRendererEventMap } from "./types";
 import { v4 } from "uuid";
-import { HostContainer, JSXRenderer } from "src/reconciler";
-import { DJSXEventHandlerMap } from "src/types";
+import { HostContainer, JSXRenderer } from "../reconciler";
+import { DJSXEventHandlerMap } from "../types";
 import { InteractionMessageUpdater, MessageUpdateableInteraction } from "./InteractionMessageUpdater";
 import { Interaction, MessageFlags } from "discord.js";
-import { PayloadBuilder } from "src/payload";
+import { PayloadBuilder } from "../payload";
 
 export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<DJSXRendererEventMap>) {
     key?: string = v4();
