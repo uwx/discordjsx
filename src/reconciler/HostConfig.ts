@@ -95,6 +95,8 @@ export const InternalHostConfig: HostConfig<
     getInstanceFromScope: () => null,
     // @ts-ignore
     maySuspendCommit: () => false,
+    startSuspendingCommit: () => {},
+    waitForCommitToBeReady: () => null,
 
     resetFormInstance() {},
     setCurrentUpdatePriority: (newPriority: number) => {},
