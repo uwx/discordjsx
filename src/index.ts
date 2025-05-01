@@ -5,3 +5,4 @@ export * from "./reconciler";
 export * from "./renderer";
 export * from "./types";
 export * from "./utils/debounceAsync";
+export * from "./utils/GlobalSuspense";

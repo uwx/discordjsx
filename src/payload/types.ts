@@ -7,6 +7,7 @@ export type InteractionMessageFlags = MessageFlags.Ephemeral
     | MessageFlags.IsComponentsV2;
 
 export type MessagePayloadOutput = {
+    suspended?: false;
     payload: BaseMessageOptions;
     flags: InteractionMessageFlags[];
     eventHandlers: Pick<DJSXEventHandlerMap, "button" | "select">;
