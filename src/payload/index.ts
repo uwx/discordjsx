@@ -188,7 +188,10 @@ export class PayloadBuilder {
             placeholder: node.props.placeholder,
             ...(node.props.type == "string" ? {
                 options: node.children.map(child => ({
-                    ...child.props,
+                    label: (child as InstrinsicNodesMap["option"]).props.label,
+                    value: (child as InstrinsicNodesMap["option"]).props.value,
+                    description: (child as InstrinsicNodesMap["option"]).props.description,
+                    emoji: (child as InstrinsicNodesMap["option"]).props.emoji,
                     default: (node.props.defaultValues as string[] | undefined)?.includes((child as InstrinsicNodesMap["option"]).props.value),
                 })),
             } : {}),
