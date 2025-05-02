@@ -1,0 +1,16 @@
+{
+    "include": [
+        "**/*",
+    ],
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "NodeNext",
+        "moduleResolution": "nodenext",
+        "jsx": "react-jsx",
+        "lib": ["ESNext"],
+        "types": ["pure-react-types"],
+        "baseUrl": ".",
+        "strict": true,
+        "noEmit": true
+    }
+}

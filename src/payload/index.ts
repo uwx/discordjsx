@@ -3,7 +3,7 @@ import { ComponentType, MessageFlags, resolveColor } from "discord.js";
 import type { InternalNode } from "../reconciler/types";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "../types/events";
-import type { InteractionMessageFlags, MessagePayloadOutput, ModalPayloadOutput } from "./types";
+import type { MessagePayloadOutput, ModalPayloadOutput } from "./types";
 import { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button";
 import { globalSuspense } from "src/intrinsics/elements";
 
@@ -55,7 +55,7 @@ export class PayloadBuilder {
         if (node.type === globalSuspense) return { suspended: true };
         if (node.type !== "message") throw new Error("Element isn't <message>");
 
-        let flags: InteractionMessageFlags[] = [];
+        let flags: MessageFlags[] = [];
         if (node.props.v2) flags.push(MessageFlags.IsComponentsV2);
         if (node.props.ephemeral) flags.push(MessageFlags.Ephemeral);
 

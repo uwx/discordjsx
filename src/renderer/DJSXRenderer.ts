@@ -1,38 +1,36 @@
-import TypedEventEmitter from "typed-emitter";
-import { EventEmitter } from "node:events";
 import { DJSXRendererEventMap } from "./types";
 import { v4 } from "uuid";
 import { HostContainer, JSXRenderer } from "../reconciler";
 import { DJSXEventHandlerMap } from "../types";
-import { InteractionMessageUpdater, MessageUpdateableInteraction } from "./InteractionMessageUpdater";
+import { MessageUpdater } from "../updater/MessageUpdater";
 import { Interaction, MessageFlags } from "discord.js";
 import { PayloadBuilder } from "../payload";
+import { createNanoEvents } from "nanoevents";
+import { MessageUpdateable } from "../updater";
 
-export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<DJSXRendererEventMap>) {
+export class DJSXRenderer {
     key?: string = v4();
-    private renderer: JSXRenderer;
+    private renderer = new JSXRenderer();
     private events: Partial<DJSXEventHandlerMap> | null = null;
 
-    updater: InteractionMessageUpdater;
+    emitter = createNanoEvents<DJSXRendererEventMap>();
+
+    updater: MessageUpdater;
 
     constructor(
-        interaction: MessageUpdateableInteraction,
+        interaction: MessageUpdateable,
         node?: React.ReactNode,
         key?: string,
-        options?: { disableInteractivity?: boolean },
     ) {
-        super();
         this.key = key;
-        this.updater = new InteractionMessageUpdater(interaction, options);
-        this.renderer = new JSXRenderer();
+        this.updater = new MessageUpdater(interaction);
         this.setNode(node);
 
-        this.renderer.on("render", this.onRender.bind(this));
-        this.renderer.on("renderError", this.handleError.bind(this));
-        this.updater.on("error", (e) => this.handleError(e, "updater"));
-        this.updater.on("tokenExpired", () => {
+        this.renderer.emitter.on("render", this.onRender.bind(this));
+        this.renderer.emitter.on("renderError", this.updater.handleError.bind(this.updater));
+        this.updater.emitter.on("tokenExpired", () => {
             this.setNode(null);
-            this.emit("inactivity");
+            this.emitter.emit("inactivity");
         });
     }
 
@@ -75,7 +73,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
         if (
             interaction.isMessageComponent()
             || interaction.isModalSubmit()
-        ) this.updater.setInteraction(interaction);
+        ) this.updater.setTarget(interaction);
     }
 
     private async onRender(container: HostContainer) {
@@ -84,33 +82,12 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
         try {
             let builder = new PayloadBuilder(this.prefixCustomId.bind(this));
             let payload = builder.createMessage(container.node);
-            if ('suspended' in payload && payload.suspended) {
-                return;
-            }
             this.events = builder.eventHandlers;
-            this.updater.updateMessageDebounced(payload);
+            this.updater.setFlags(payload.flags);
+            this.updater.updateMessageDebounced(payload.options);
         } catch (e) {
-            this.handleError(e as Error, "renderer");
+            this.updater.handleError(e as Error);
         };
-    }
-
-    async handleError(error: Error, source?: "renderer" | "updater") {
-        console.log(`[discordjsx/${source}] Error:`, error);
-        this.emit("renderError", error);
-
-        try {
-            const content = `-# discordjsx\n:warning: **Error**\n\`\`\`\n${error.toString()}\n\`\`\``;
-
-            await this.updater._updateMessage({
-                flags: [MessageFlags.Ephemeral],
-                options: {
-                    content,
-                },
-            });
-        } catch (e) {
-            this.emit("fatalError", e as Error);
-            console.log("[discordjsx] (fatal) Error:", e);
-        }
     }
 
     disable() {

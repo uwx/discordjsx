@@ -3,6 +3,10 @@ import React, { useEffect, useState } from "react";
 
 export const Counter = () => {
     const [count, setCount] = useState(0);
+    const [error, setError] = useState(false);
+    const [doThrow, setDoThrow] = useState(false);
+
+    if(doThrow) throw new Error("This error should be displayed on discord");
 
     // useEffect(() => {
     //     const i = setInterval(() => {
@@ -13,9 +17,11 @@ export const Counter = () => {
 
     return (
         <message v2 ephemeral>
-            {/* <button>
-                error
-            </button> */}
+            {error && (
+                <button>
+                    error
+                </button>
+            )}
             <container>
                 <text>
                     Counter: **{count}**
@@ -37,6 +43,16 @@ export const Counter = () => {
                 <row>
                     <button style="secondary">
                         No Event Handler
+                    </button>
+                </row>
+                <row>
+                    <button style="danger" onClick={() => setError(true)}>
+                        Make payload invalid
+                    </button>
+                </row>
+                <row>
+                    <button style="danger" onClick={() => setDoThrow(true)}>
+                        Make component throw
                     </button>
                 </row>
             </container>

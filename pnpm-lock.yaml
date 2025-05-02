@@ -16,6 +16,9 @@ importers:
       discord.js:
         specifier: ^14.19.1
         version: 14.19.1
+      nanoevents:
+        specifier: ^9.1.0
+        version: 9.1.0
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -36,11 +39,8 @@ importers:
         specifier: ^16.5.0
         version: 16.5.0
       pure-react-types:
-        specifier: ^0.1.1
-        version: 0.1.1
-      typed-emitter:
-        specifier: ^2.1.0
-        version: 2.1.0
+        specifier: ^0.1.4
+        version: 0.1.4
       typescript:
         specifier: 5.2.2
         version: 5.2.2
@@ -134,8 +134,12 @@ packages:
   magic-bytes.js@1.12.1:
     resolution: {integrity: sha512-ThQLOhN86ZkJ7qemtVRGYM+gRgR8GEXNli9H/PMvpnZsE44Xfh3wx9kGJaldg314v85m+bFW6WBMaVHJc/c3zA==}
 
-  pure-react-types@0.1.1:
-    resolution: {integrity: sha512-1d2zfc6Vcl/KemuZBFR75CVDEI8Xm9X+8m0WqnFevoN1dVtK+huuQbQ4+WVGxjhOsvhUMsk0nYonvHOwhoxI9A==}
+  nanoevents@9.1.0:
+    resolution: {integrity: sha512-Jd0fILWG44a9luj8v5kED4WI+zfkkgwKyRQKItTtlPfEsh7Lznfi1kr8/iZ+XAIss4Qq5GqRB0qtWbaz9ceO/A==}
+    engines: {node: ^18.0.0 || >=20.0.0}
+
+  pure-react-types@0.1.4:
+    resolution: {integrity: sha512-8y1P/kWmo839jDqhLnaTAatjwU2SVjs34iwOwYtiMdcfGLBGiOrUTPjpb9hOgTB3cPNuAT0q90AtmPEIp1zJxA==}
 
   react-reconciler@0.32.0:
     resolution: {integrity: sha512-2NPMOzgTlG0ZWdIf3qG+dcbLSoAc/uLfOwckc3ofy5sSK0pLJqnQLpUFxvGcN2rlXSjnVtGeeFLNimCQEj5gOQ==}
@@ -147,9 +151,6 @@ packages:
     resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
     engines: {node: '>=0.10.0'}
 
-  rxjs@7.8.2:
-    resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
-
   scheduler@0.26.0:
     resolution: {integrity: sha512-NlHwttCI/l5gCPR3D1nNXtWABUmBwvZpEQiD4IXSbIDq8BzLIK/7Ir5gTFSGZDUu37K5cMNp0hFtzO38sC7gWA==}
 
@@ -158,9 +159,6 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
-
-  typed-emitter@2.1.0:
-    resolution: {integrity: sha512-g/KzbYKbH5C2vPkaXGu8DJlHrGKHLsM25Zg9WuC9pMGfuvT+X25tZQWo5fK1BjBm8+UrVE9LDCvaY0CQk+fXDA==}
 
   typescript@5.2.2:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
@@ -301,7 +299,9 @@ snapshots:
 
   magic-bytes.js@1.12.1: {}
 
-  pure-react-types@0.1.1: {}
+  nanoevents@9.1.0: {}
+
+  pure-react-types@0.1.4: {}
 
   react-reconciler@0.32.0(react@19.1.0):
     dependencies:
@@ -310,20 +310,11 @@ snapshots:
 
   react@19.1.0: {}
 
-  rxjs@7.8.2:
-    dependencies:
-      tslib: 2.8.1
-    optional: true
-
   scheduler@0.26.0: {}
 
   ts-mixer@6.0.4: {}
 
   tslib@2.8.1: {}
-
-  typed-emitter@2.1.0:
-    optionalDependencies:
-      rxjs: 7.8.2
 
   typescript@5.2.2: {}
 

@@ -1,6 +1,6 @@
 {
     "name": "discord-jsx-renderer",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "React for discord.js",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -18,8 +18,7 @@
         "@types/react-reconciler": "^0.31.0",
         "@types/uuid": "^10.0.0",
         "dotenv": "^16.5.0",
-        "pure-react-types": "^0.1.1",
-        "typed-emitter": "^2.1.0",
+        "pure-react-types": "^0.1.4",
         "typescript": "5.2.2"
     },
     "peerDependencies": {
@@ -27,6 +26,7 @@
         "react": "^19.1.0"
     },
     "dependencies": {
+        "nanoevents": "^9.1.0",
         "react-reconciler": "^0.32.0",
         "uuid": "^11.1.0"
     },
