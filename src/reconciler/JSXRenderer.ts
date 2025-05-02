@@ -1,8 +1,8 @@
 import { OpaqueRoot } from "react-reconciler";
-import { HostContainer, InternalNode } from "./types";
+import { HostContainer, InternalNode } from "./types.js";
 import { createNanoEvents } from "nanoevents";
-import { ConcurrentRoot } from "react-reconciler/constants";
-import { reconciler } from "./reconciler";
+import { ConcurrentRoot } from "react-reconciler/constants.js";
+import { reconciler } from "./reconciler.js";
 
 export type JSXRendererEventMap = {
     render: (container: HostContainer) => void;

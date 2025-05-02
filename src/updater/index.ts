@@ -1,3 +1,3 @@
-export * from "./MessageUpdater"
-export * from "./types"
-export * from "./utils"
+export * from "./MessageUpdater.js"
+export * from "./types.js"
+export * from "./utils.js"

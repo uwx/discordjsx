@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, Collection, Interaction, ModalSubmitInteraction } from "discord.js";
-import { DJSXRenderer } from "../renderer";
+import { DJSXRenderer } from "../renderer/index.js";
 import { ReactNode } from "react";
 import { v4 } from "uuid";
 

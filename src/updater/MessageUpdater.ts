@@ -1,10 +1,10 @@
 import { BaseChannel, BaseInteraction, BaseMessageOptions, blockQuote, codeBlock, ComponentType, DiscordAPIError, Message, MessageFlags, resolveColor, User } from "discord.js";
-import { debounceAsync } from "../utils/debounceAsync";
-import { markComponentsDisabled } from "../utils/markComponentsDisabled";
+import { debounceAsync } from "../utils/debounceAsync.js";
+import { markComponentsDisabled } from "../utils/markComponentsDisabled.js";
 import { inspect } from "node:util";
 import { createNanoEvents } from "nanoevents";
-import { INTERACTION_TOKEN_EXPIRY, MessageUpdateable, INTERACTION_REPLY_EXPIRY } from "./types";
-import { pickMessageFlags, isUpdateableNeedsReply } from "./utils";
+import { INTERACTION_TOKEN_EXPIRY, MessageUpdateable, INTERACTION_REPLY_EXPIRY } from "./types.js";
+import { pickMessageFlags, isUpdateableNeedsReply } from "./utils.js";
 
 const REPLY_TIMEOUT = INTERACTION_REPLY_EXPIRY - 1000;
 const INTERACTION_TOKEN_TIMEOUT = INTERACTION_TOKEN_EXPIRY - 30 * 1000;

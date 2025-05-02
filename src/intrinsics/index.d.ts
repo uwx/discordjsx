@@ -1,4 +1,4 @@
-import type { DJSXElements } from "./elements";
+import type { DJSXElements } from "./elements/index.js";
 
 declare global {
     namespace React {

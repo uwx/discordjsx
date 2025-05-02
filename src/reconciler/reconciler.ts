@@ -1,6 +1,6 @@
 import { version } from "react";
 import ReactReconciler from "react-reconciler";
-import { InternalHostConfig } from "./HostConfig";
+import { InternalHostConfig } from "./HostConfig.js";
 
 export const reconciler = ReactReconciler(InternalHostConfig);
 
