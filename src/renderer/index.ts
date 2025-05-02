@@ -1,4 +1,4 @@
-import { BaseChannel, Channel, Message, MessageFlags, ModalSubmitInteraction, SendableChannels, TextBasedChannel, type AnySelectMenuInteraction, type ButtonInteraction, type ChatInputCommandInteraction, type Interaction } from "discord.js";
+import { BaseChannel, Channel, Message, MessageFlags, ModalSubmitInteraction, SendableChannels, TextBasedChannel, User, type AnySelectMenuInteraction, type ButtonInteraction, type ChatInputCommandInteraction, type Interaction } from "discord.js";
 import { JSXRenderer } from "../reconciler";
 import type { HostContainer } from "../reconciler/types";
 import EventEmitter from "node:events";
@@ -16,7 +16,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
     private renderer: JSXRenderer;
     private events: Partial<DJSXEventHandlerMap> | null = null;
 
-    interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message;
+    interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message | User;
     lastInteraction: ButtonInteraction | AnySelectMenuInteraction | null = null;
 
     private inactivityTimer?: NodeJS.Timeout;
@@ -25,7 +25,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
     private DEFER_TIME = 2 * 1000; // actually 3 seconds but we compromise
 
     constructor(
-        interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message,
+        interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message | User,
         node?: React.ReactNode,
         key?: string,
         options?: { disableInteractivity?: boolean },
@@ -134,7 +134,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
             await this.interaction.edit({
                 ...payload,
             });
-        } else if (this.interaction instanceof BaseChannel) {
+        } else if (this.interaction instanceof BaseChannel || this.interaction instanceof User) {
             this.interaction = await this.interaction.send({
                 ...payload,
             });
