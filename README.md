@@ -1,6 +1,6 @@
 # discord-jsx-renderer
 
-![Discord](https://img.shields.io/discord/1197520507617153064?logo=discord)
+[![Discord](https://img.shields.io/discord/1197520507617153064?logo=discord)](https://discord.gg/QrBzpDxUyB)
 [![Static Badge](https://img.shields.io/badge/view_on-github-blue?logo=github)](https://github.com/deniz-blue/discordjsx)
 ![NPM Version](https://img.shields.io/npm/v/discord-jsx-renderer)
 ![NPM Last Update](https://img.shields.io/npm/last-update/discord-jsx-renderer)
