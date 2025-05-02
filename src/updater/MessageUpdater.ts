@@ -1,5 +1,4 @@
-import { AnySelectMenuInteraction, BaseChannel, BaseInteraction, BaseMessageOptions, blockQuote, ButtonInteraction, ChatInputCommandInteraction, codeBlock, ComponentType, DiscordAPIError, DiscordjsErrorCodes, Message, MessageEditOptions, MessageFlags, ModalSubmitInteraction, resolveColor, SendableChannels, TextBasedChannel, User } from "discord.js";
-import { InteractionMessageFlags } from "../payload/types";
+import { BaseChannel, BaseInteraction, BaseMessageOptions, blockQuote, codeBlock, ComponentType, DiscordAPIError, Message, MessageFlags, resolveColor, User } from "discord.js";
 import { debounceAsync } from "../utils/debounceAsync";
 import { markComponentsDisabled } from "../utils/markComponentsDisabled";
 import { inspect } from "node:util";
@@ -16,28 +15,28 @@ export type InteractionMessageUpdaterEventMap = {
 };
 
 export class MessageUpdater {
-    interaction: MessageUpdateable;
+    target: MessageUpdateable;
     tokenExpired: boolean = false;
     emitter = createNanoEvents<InteractionMessageUpdaterEventMap>();
 
-    flags: InteractionMessageFlags[] = [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral];
+    flags: MessageFlags[] = [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral];
 
     private tokenExpiryTimeout: NodeJS.Timeout | null = null;
 
-    constructor(interaction: MessageUpdateable) {
-        this.interaction = interaction;
-        this.setInteraction(interaction);
+    constructor(target: MessageUpdateable) {
+        this.target = target;
+        this.setTarget(target);
     }
 
-    setInteraction(interaction: MessageUpdateable) {
-        this.interaction = interaction;
+    setTarget(target: MessageUpdateable) {
+        this.target = target;
 
         this.setExpiry();
 
-        if (isUpdateableNeedsReply(interaction)) {
+        if (isUpdateableNeedsReply(target)) {
             setTimeout(async () => {
-                if (!interaction.replied && !interaction.deferred) {
-                    await interaction.deferUpdate();
+                if (!target.replied && !target.deferred) {
+                    await target.deferUpdate();
                 }
             }, REPLY_TIMEOUT);
         }
@@ -52,7 +51,7 @@ export class MessageUpdater {
         this.tokenExpiryTimeout = setTimeout(this.onTokenExpired.bind(this), INTERACTION_TOKEN_TIMEOUT);
     }
 
-    setFlags(flags: InteractionMessageFlags[]) {
+    setFlags(flags: MessageFlags[]) {
         this.flags = flags;
     }
 
@@ -133,18 +132,18 @@ export class MessageUpdater {
     // Raw
 
     async updateMessageRaw(options: BaseMessageOptions) {
-        if (this.interaction instanceof BaseInteraction) {
-            if (this.interaction.replied || this.interaction.deferred) {
-                await this.interaction.editReply({
+        if (this.target instanceof BaseInteraction) {
+            if (this.target.replied || this.target.deferred) {
+                await this.target.editReply({
                     ...options,
                     flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
                 });
             } else {
                 if (
-                    this.interaction.isChatInputCommand()
-                    || (this.interaction.isModalSubmit() && !this.interaction.isFromMessage())
+                    this.target.isChatInputCommand()
+                    || (this.target.isModalSubmit() && !this.target.isFromMessage())
                 ) {
-                    await this.interaction.reply({
+                    await this.target.reply({
                         ...options,
                         flags: pickMessageFlags(this.flags, [
                             MessageFlags.Ephemeral,
@@ -154,22 +153,22 @@ export class MessageUpdater {
                         ]),
                     });
                 } else if (
-                    this.interaction.isMessageComponent()
-                    || (this.interaction.isModalSubmit() && this.interaction.isFromMessage())
+                    this.target.isMessageComponent()
+                    || (this.target.isModalSubmit() && this.target.isFromMessage())
                 ) {
-                    await this.interaction.update({
+                    await this.target.update({
                         ...options,
                         flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
                     });
                 }
             }
-        } else if (this.interaction instanceof Message) {
-            await this.interaction.edit({
+        } else if (this.target instanceof Message) {
+            await this.target.edit({
                 ...options,
                 flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
             });
-        } else if (this.interaction instanceof BaseChannel || this.interaction instanceof User) {
-            this.interaction = await this.interaction.send({
+        } else if (this.target instanceof BaseChannel || this.target instanceof User) {
+            this.target = await this.target.send({
                 ...options,
                 flags: pickMessageFlags(this.flags, [
                     MessageFlags.SuppressEmbeds,

@@ -73,7 +73,7 @@ export class DJSXRenderer {
         if (
             interaction.isMessageComponent()
             || interaction.isModalSubmit()
-        ) this.updater.setInteraction(interaction);
+        ) this.updater.setTarget(interaction);
     }
 
     private async onRender(container: HostContainer) {
