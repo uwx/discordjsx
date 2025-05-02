@@ -1,6 +1,6 @@
 # discord-jsx-renderer
 
-[![Discord](https://img.shields.io/discord/1197520507617153064?logo=discord)](https://discord.gg/QrBzpDxUyB)
+[![Discord](https://img.shields.io/discord/1197520507617153064?logo=discord)](https://deniz.blue/discord-invite?id=1197520507617153064)
 [![Static Badge](https://img.shields.io/badge/view_on-github-blue?logo=github)](https://github.com/deniz-blue/discordjsx)
 ![NPM Version](https://img.shields.io/npm/v/discord-jsx-renderer)
 ![NPM Last Update](https://img.shields.io/npm/last-update/discord-jsx-renderer)
@@ -10,7 +10,7 @@ Render react components for Discord interactions (Components V2 supported!)
 
 You can use all sorts of react features including **state**, **context**, **effects** and more.
 
-## Example
+## Examples
 
 ![Screenshot](./example/screenshot.png)
 
@@ -45,6 +45,10 @@ export const Counter = () => {
     )
 };
 ```
+
+**More examples:**
+- [TicTacToe (2 players)](https://github.com/deniz-blue/games-bot/blob/c3ce8f573ecdf194d45839fc3303cc8331beec0a/src/games/TicTacToe.tsx)
+- [With react-router](https://github.com/deniz-blue/games-bot/blob/c3ce8f573ecdf194d45839fc3303cc8331beec0a/src/experiments/ReactRouterExperiment.tsx)
 
 ## Installation
 
