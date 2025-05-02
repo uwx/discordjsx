@@ -19,7 +19,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
     interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message;
     lastInteraction: ButtonInteraction | AnySelectMenuInteraction | null = null;
 
-    private inactivityTimer: NodeJS.Timeout;
+    private inactivityTimer?: NodeJS.Timeout;
     private INTERACTION_TOKEN_LIFE = 15 * 60 * 1000; // 15 minutes
     private deferUpdateTimeout: NodeJS.Timeout | null = null;
     private DEFER_TIME = 2 * 1000; // actually 3 seconds but we compromise
@@ -28,6 +28,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
         interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message,
         node?: React.ReactNode,
         key?: string,
+        options?: { disableInteractivity?: boolean },
     ) {
         super();
         this.key = key;
@@ -35,10 +36,12 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
         this.renderer = new JSXRenderer();
         this.setNode(node);
 
-        this.inactivityTimer = setTimeout(
-            () => this.emit("inactivity"),
-            this.INTERACTION_TOKEN_LIFE
-        );
+        if (!options?.disableInteractivity) {
+            this.inactivityTimer = setTimeout(
+                () => this.emit("inactivity"),
+                this.INTERACTION_TOKEN_LIFE
+            );
+        }
 
         this.renderer.on("render", this.render.bind(this));
         this.renderer.on("renderError", this.handleError.bind(this));
@@ -152,7 +155,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
             this.emit("updatedMessage", "reply");
         }
 
-        this.inactivityTimer.refresh();
+        this.inactivityTimer?.refresh();
     }
 
     async handleError(error: Error) {

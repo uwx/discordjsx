@@ -11,18 +11,23 @@ export class DJSXRendererManager {
     create(
         interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message,
         node?: ReactNode,
+        options?: { disableInteractivity?: boolean },
     ) {
         const renderer = new DJSXRenderer(
             interaction,
             node,
+            undefined,
+            options,
         );
 
-        renderer.on("inactivity", () => {
-            renderer.setNode(null);
-            this.renderers.delete(renderer.key!);
-        });
+        if (!options?.disableInteractivity) {
+            renderer.on("inactivity", () => {
+                renderer.setNode(null);
+                this.renderers.delete(renderer.key!);
+            });
 
-        this.add(renderer);
+            this.add(renderer);
+        }
 
         return renderer;
     }
