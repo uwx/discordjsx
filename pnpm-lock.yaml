@@ -36,8 +36,8 @@ importers:
         specifier: ^16.5.0
         version: 16.5.0
       pure-react-types:
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.4
+        version: 0.1.4
       typed-emitter:
         specifier: ^2.1.0
         version: 2.1.0
@@ -134,8 +134,8 @@ packages:
   magic-bytes.js@1.12.1:
     resolution: {integrity: sha512-ThQLOhN86ZkJ7qemtVRGYM+gRgR8GEXNli9H/PMvpnZsE44Xfh3wx9kGJaldg314v85m+bFW6WBMaVHJc/c3zA==}
 
-  pure-react-types@0.1.1:
-    resolution: {integrity: sha512-1d2zfc6Vcl/KemuZBFR75CVDEI8Xm9X+8m0WqnFevoN1dVtK+huuQbQ4+WVGxjhOsvhUMsk0nYonvHOwhoxI9A==}
+  pure-react-types@0.1.4:
+    resolution: {integrity: sha512-8y1P/kWmo839jDqhLnaTAatjwU2SVjs34iwOwYtiMdcfGLBGiOrUTPjpb9hOgTB3cPNuAT0q90AtmPEIp1zJxA==}
 
   react-reconciler@0.32.0:
     resolution: {integrity: sha512-2NPMOzgTlG0ZWdIf3qG+dcbLSoAc/uLfOwckc3ofy5sSK0pLJqnQLpUFxvGcN2rlXSjnVtGeeFLNimCQEj5gOQ==}
@@ -301,7 +301,7 @@ snapshots:
 
   magic-bytes.js@1.12.1: {}
 
-  pure-react-types@0.1.1: {}
+  pure-react-types@0.1.4: {}
 
   react-reconciler@0.32.0(react@19.1.0):
     dependencies:
