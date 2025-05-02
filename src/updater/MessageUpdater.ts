@@ -136,7 +136,7 @@ export class MessageUpdater {
             if (this.target.replied || this.target.deferred) {
                 await this.target.editReply({
                     ...options,
-                    flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
+                    flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
                 });
             } else {
                 if (
@@ -158,14 +158,14 @@ export class MessageUpdater {
                 ) {
                     await this.target.update({
                         ...options,
-                        flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
+                        flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
                     });
                 }
             }
         } else if (this.target instanceof Message) {
             await this.target.edit({
                 ...options,
-                flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
+                flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
             });
         } else if (this.target instanceof BaseChannel || this.target instanceof User) {
             this.target = await this.target.send({
