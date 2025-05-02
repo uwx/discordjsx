@@ -1,4 +1,4 @@
-import { MessageFlags, ModalSubmitInteraction, type AnySelectMenuInteraction, type ButtonInteraction, type ChatInputCommandInteraction, type Interaction } from "discord.js";
+import { BaseChannel, Channel, Message, MessageFlags, ModalSubmitInteraction, SendableChannels, TextBasedChannel, type AnySelectMenuInteraction, type ButtonInteraction, type ChatInputCommandInteraction, type Interaction } from "discord.js";
 import { JSXRenderer } from "../reconciler";
 import type { HostContainer } from "../reconciler/types";
 import EventEmitter from "node:events";
@@ -16,7 +16,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
     private renderer: JSXRenderer;
     private events: Partial<DJSXEventHandlerMap> | null = null;
 
-    interaction: ChatInputCommandInteraction | ModalSubmitInteraction;
+    interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message;
     lastInteraction: ButtonInteraction | AnySelectMenuInteraction | null = null;
 
     private inactivityTimer: NodeJS.Timeout;
@@ -25,7 +25,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
     private DEFER_TIME = 2 * 1000; // actually 3 seconds but we compromise
 
     constructor(
-        interaction: ChatInputCommandInteraction | ModalSubmitInteraction,
+        interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message,
         node?: React.ReactNode,
         key?: string,
     ) {
@@ -63,7 +63,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
         if (interaction.isButton()) {
             let cb = this.events?.button?.get(interaction.customId);
             cb?.(interaction);
-        } else if (interaction.isAnySelectMenu()) {
+        } else if (interaction.isSelectMenu()) {
             let cb = this.events?.select?.get(interaction.customId);
             cb?.(interaction.values, interaction);
         } else if (interaction.isModalSubmit()) {
@@ -75,7 +75,7 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
             cb?.(form, interaction);
         };
 
-        if (interaction.isButton() || interaction.isAnySelectMenu()) {
+        if (interaction.isButton() || interaction.isSelectMenu()) {
             let before = this.lastInteraction;
             this.lastInteraction = interaction;
 
@@ -127,6 +127,14 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
                 clearTimeout(this.deferUpdateTimeout);
 
             this.emit("updatedMessage", "component");
+        } else if (this.interaction instanceof Message) {
+            await this.interaction.edit({
+                ...payload,
+            });
+        } else if (this.interaction instanceof BaseChannel) {
+            this.interaction = await this.interaction.send({
+                ...payload,
+            });
         } else if (this.interaction.replied || this.interaction.deferred) {
             await this.interaction.editReply({
                 withComponents: true,
