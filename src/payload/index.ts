@@ -49,7 +49,7 @@ export class PayloadBuilder {
         return node.children.map(this.getText.bind(this)).join("");
     }
 
-    createMessage(node: InternalNode): MessagePayloadOutput {
+    createMessage(node: InternalNode): MessagePayloadOutput | { suspended: true } {
         if(this.used) throw new Error("You cannot re-use PayloadBuilder - please create a new one");
         this.used = true;
         if (node.type === globalSuspense) return { suspended: true };
