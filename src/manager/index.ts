@@ -1,5 +1,5 @@
 import { type BaseChannel, type ChatInputCommandInteraction, Collection, type Interaction, type Message, type ModalSubmitInteraction, type SendableChannels, type TextBasedChannel, type User } from "discord.js";
-import { DJSXRenderer } from "../renderer";
+import { DJSXRenderer, type MessageUpdateableInteraction } from "../renderer";
 import type { ReactNode } from "react";
 import { v4 } from "uuid";
 
@@ -9,7 +9,7 @@ export class DJSXRendererManager {
     constructor() {}
 
     create(
-        interaction: ChatInputCommandInteraction | ModalSubmitInteraction | (BaseChannel & TextBasedChannel & SendableChannels) | Message | User,
+        interaction: MessageUpdateableInteraction,
         node?: ReactNode,
         options?: { disableInteractivity?: boolean },
     ) {
@@ -22,8 +22,7 @@ export class DJSXRendererManager {
 
         if (!options?.disableInteractivity) {
             renderer.on("inactivity", () => {
-                renderer.setNode(null);
-                this.renderers.delete(renderer.key!);
+            	this.renderers.delete(renderer.key!);
             });
 
             this.add(renderer);
@@ -39,5 +38,9 @@ export class DJSXRendererManager {
 
     dispatchInteraction(int: Interaction) {
         this.renderers.forEach((renderer) => renderer.dispatchInteraction(int));
+    }
+
+    disable() {
+        return Promise.all(this.renderers.map((renderer) => renderer.disable()));
     }
 }

@@ -96,7 +96,14 @@ export const InternalHostConfig: HostConfig<
     // @ts-ignore
     maySuspendCommit: () => false,
     startSuspendingCommit: () => {},
+    suspendInstance: () => {},
     waitForCommitToBeReady: () => null,
+    shouldAttemptEagerTransition: () => false,
+    requestPostPaintCallback: () => {},
+    trackSchedulerEvent: () => {},
+    resolveEventType: () => null,
+    resolveEventTimeStamp: () => Date.now(),
+    NotPendingTransition: null,
 
     resetFormInstance() {},
     setCurrentUpdatePriority: (newPriority: number) => {},

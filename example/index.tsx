@@ -23,3 +23,12 @@ client.on(Events.InteractionCreate, (interaction) => {
 });
 
 client.login(process.env.TOKEN);
+
+const beforeExit = () => {
+    djsx.disable()
+        .catch(e => console.log(e))
+        .finally(() => process.exit(0));
+};
+
+process.on("SIGTERM", beforeExit);
+process.on("SIGINT", beforeExit);

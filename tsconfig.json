@@ -4,13 +4,11 @@
     ],
     "compilerOptions": {
         "target": "ESNext",
-        "module": "ESNext",
-        "moduleResolution": "bundler",
+        "module": "NodeNext",
+        "moduleResolution": "nodenext",
         "jsx": "react-jsx",
-        "lib": [
-            "ESNext"
-        ],
-        "paths": {},
+        "lib": ["ESNext"],
+        "types": ["pure-react-types"],
         "baseUrl": ".",
         "esModuleInterop": true,
         "declaration": true,
