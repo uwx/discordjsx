@@ -1,1 +1,1 @@
-export * from "./DJSXRendererManager"
+export * from "./DJSXRendererManager.js"

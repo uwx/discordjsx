@@ -1,8 +1,8 @@
 import type { APIMediaGalleryItem, APISelectMenuOption, ColorResolvable } from "discord.js";
 import type { PropsWithChildren } from "react";
-import type { UnfurledMediaResolvable } from "./base";
-import type { SelectProps } from "./select";
-import type { ButtonProps } from "./button";
+import type { UnfurledMediaResolvable } from "./base.d.ts";
+import type { SelectProps } from "./select.d.ts";
+import type { ButtonProps } from "./button.d.ts";
 
 export interface DJSXElements {
     // main elements

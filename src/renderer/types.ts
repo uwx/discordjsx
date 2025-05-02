@@ -1,5 +1,5 @@
-import { AnySelectMenuInteraction, BaseChannel, BaseMessageOptions, ButtonInteraction, ChatInputCommandInteraction, Message, ModalSubmitInteraction, SendableChannels, TextBasedChannel, User } from "discord.js";
-import { DJSXEventHandler } from "../types";
+import { AnySelectMenuInteraction, BaseMessageOptions, ButtonInteraction } from "discord.js";
+import { DJSXEventHandler } from "../types/index.js";
 
 export type DJSXRendererEventMap = {
     inactivity: () => void;

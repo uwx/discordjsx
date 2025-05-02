@@ -1,2 +1,2 @@
-export * from "./types"
-export * from "./DJSXRenderer"
+export * from "./types.js"
+export * from "./DJSXRenderer.js"
