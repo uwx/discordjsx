@@ -1,10 +1,9 @@
 import { AnySelectMenuInteraction, BaseMessageOptions, blockQuote, ButtonInteraction, ChatInputCommandInteraction, codeBlock, ComponentType, DiscordAPIError, DiscordjsErrorCodes, MessageEditOptions, MessageFlags, ModalSubmitInteraction, resolveColor } from "discord.js";
 import { InteractionMessageFlags } from "../payload/types";
-import TypedEventEmitter from "typed-emitter";
-import EventEmitter from "node:events";
 import { debounceAsync } from "../utils/debounceAsync";
 import { markComponentsDisabled } from "../utils/markComponentsDisabled";
 import { inspect } from "node:util";
+import { createNanoEvents } from "nanoevents";
 
 const INTERACTION_TOKEN_EXPIRY = 15 * 60 * 1000;
 // const INTERACTION_TOKEN_EXPIRY = 40 * 1000;
@@ -20,16 +19,16 @@ export type InteractionMessageUpdaterEventMap = {
     messageUpdated: (method: "reply" | "editReply" | "update") => void;
 };
 
-export class MessageUpdater extends (EventEmitter as new () => TypedEventEmitter<InteractionMessageUpdaterEventMap>) {
+export class MessageUpdater {
     interaction: MessageUpdateable;
     tokenExpired: boolean = false;
+    emitter = createNanoEvents<InteractionMessageUpdaterEventMap>();
 
     flags: InteractionMessageFlags[] = [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral];
 
     private tokenExpiryTimeout: NodeJS.Timeout | null = null;
 
     constructor(interaction: MessageUpdateable) {
-        super();
         this.interaction = interaction;
         this.setInteraction(interaction);
     }
@@ -138,11 +137,8 @@ export class MessageUpdater extends (EventEmitter as new () => TypedEventEmitter
     // Raw
 
     async updateMessageRaw(options: BaseMessageOptions) {
-        console.log("updateMessageRaw", inspect(options, { depth: Infinity }))
-
         if (this.interaction.replied || this.interaction.deferred) {
             await this.interaction.editReply(options);
-            this.emit("messageUpdated", "editReply");
         } else {
             if (
                 this.interaction.isChatInputCommand()
@@ -152,13 +148,11 @@ export class MessageUpdater extends (EventEmitter as new () => TypedEventEmitter
                     ...options,
                     flags: this.flags,
                 });
-                this.emit("messageUpdated", "reply");
             } else if (
                 this.interaction.isMessageComponent()
                 || (this.interaction.isModalSubmit() && this.interaction.isFromMessage())
             ) {
                 await this.interaction.update(options);
-                this.emit("messageUpdated", "update");
             }
         }
     }
@@ -168,7 +162,7 @@ export class MessageUpdater extends (EventEmitter as new () => TypedEventEmitter
     private async onTokenExpired() {
         await this.disable();
         this.tokenExpired = true;
-        this.emit("tokenExpired");
+        this.emitter.emit("tokenExpired");
     }
 
     async disable() {

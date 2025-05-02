@@ -1,5 +1,3 @@
-import TypedEventEmitter from "typed-emitter";
-import { EventEmitter } from "node:events";
 import { DJSXRendererEventMap } from "./types";
 import { v4 } from "uuid";
 import { HostContainer, JSXRenderer } from "../reconciler";
@@ -7,11 +5,14 @@ import { DJSXEventHandlerMap } from "../types";
 import { MessageUpdater, MessageUpdateable } from "./MessageUpdater";
 import { Interaction, MessageFlags } from "discord.js";
 import { PayloadBuilder } from "../payload";
+import { createNanoEvents } from "nanoevents";
 
-export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<DJSXRendererEventMap>) {
+export class DJSXRenderer {
     key?: string = v4();
-    private renderer: JSXRenderer;
+    private renderer = new JSXRenderer();
     private events: Partial<DJSXEventHandlerMap> | null = null;
+
+    emitter = createNanoEvents<DJSXRendererEventMap>();
 
     updater: MessageUpdater;
 
@@ -20,17 +21,15 @@ export class DJSXRenderer extends (EventEmitter as new () => TypedEventEmitter<D
         node?: React.ReactNode,
         key?: string,
     ) {
-        super();
         this.key = key;
         this.updater = new MessageUpdater(interaction);
-        this.renderer = new JSXRenderer();
         this.setNode(node);
 
-        this.renderer.on("render", this.onRender.bind(this));
-        this.renderer.on("renderError", this.updater.handleError.bind(this.updater));
-        this.updater.on("tokenExpired", () => {
+        this.renderer.emitter.on("render", this.onRender.bind(this));
+        this.renderer.emitter.on("renderError", this.updater.handleError.bind(this.updater));
+        this.updater.emitter.on("tokenExpired", () => {
             this.setNode(null);
-            this.emit("inactivity");
+            this.emitter.emit("inactivity");
         });
     }
 

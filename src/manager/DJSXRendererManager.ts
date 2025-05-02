@@ -17,7 +17,7 @@ export class DJSXRendererManager {
             node,
         );
 
-        renderer.on("inactivity", () => {
+        renderer.emitter.on("inactivity", () => {
             this.renderers.delete(renderer.key!);
         });
 
