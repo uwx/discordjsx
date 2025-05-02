@@ -3,5 +3,7 @@ export * from "./manager";
 export * from "./payload";
 export * from "./reconciler";
 export * from "./renderer";
+export * from "./updater";
 export * from "./types";
 export * from "./utils/debounceAsync";
+export * from "./utils/markComponentsDisabled";

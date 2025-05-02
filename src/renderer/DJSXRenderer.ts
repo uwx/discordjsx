@@ -2,10 +2,11 @@ import { DJSXRendererEventMap } from "./types";
 import { v4 } from "uuid";
 import { HostContainer, JSXRenderer } from "../reconciler";
 import { DJSXEventHandlerMap } from "../types";
-import { MessageUpdater, MessageUpdateable } from "./MessageUpdater";
+import { MessageUpdater } from "../updater/MessageUpdater";
 import { Interaction, MessageFlags } from "discord.js";
 import { PayloadBuilder } from "../payload";
 import { createNanoEvents } from "nanoevents";
+import { MessageUpdateable } from "../updater";
 
 export class DJSXRenderer {
     key?: string = v4();

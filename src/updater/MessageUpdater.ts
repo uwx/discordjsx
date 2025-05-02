@@ -1,18 +1,14 @@
-import { AnySelectMenuInteraction, BaseMessageOptions, blockQuote, ButtonInteraction, ChatInputCommandInteraction, codeBlock, ComponentType, DiscordAPIError, DiscordjsErrorCodes, MessageEditOptions, MessageFlags, ModalSubmitInteraction, resolveColor } from "discord.js";
+import { AnySelectMenuInteraction, BaseChannel, BaseInteraction, BaseMessageOptions, blockQuote, ButtonInteraction, ChatInputCommandInteraction, codeBlock, ComponentType, DiscordAPIError, DiscordjsErrorCodes, Message, MessageEditOptions, MessageFlags, ModalSubmitInteraction, resolveColor, SendableChannels, TextBasedChannel, User } from "discord.js";
 import { InteractionMessageFlags } from "../payload/types";
 import { debounceAsync } from "../utils/debounceAsync";
 import { markComponentsDisabled } from "../utils/markComponentsDisabled";
 import { inspect } from "node:util";
 import { createNanoEvents } from "nanoevents";
+import { INTERACTION_TOKEN_EXPIRY, MessageUpdateable, INTERACTION_REPLY_EXPIRY } from "./types";
+import { pickMessageFlags, isUpdateableNeedsReply } from "./utils";
 
-const INTERACTION_TOKEN_EXPIRY = 15 * 60 * 1000;
-// const INTERACTION_TOKEN_EXPIRY = 40 * 1000;
-const REPLY_EXPIRY = 3 * 1000;
-
-const REPLY_TIMEOUT = REPLY_EXPIRY - 1000;
+const REPLY_TIMEOUT = INTERACTION_REPLY_EXPIRY - 1000;
 const INTERACTION_TOKEN_TIMEOUT = INTERACTION_TOKEN_EXPIRY - 30 * 1000;
-
-export type MessageUpdateable = ChatInputCommandInteraction | ModalSubmitInteraction | ButtonInteraction | AnySelectMenuInteraction;
 
 export type InteractionMessageUpdaterEventMap = {
     tokenExpired: () => void;
@@ -38,7 +34,7 @@ export class MessageUpdater {
 
         this.setExpiry();
 
-        if (interaction.isMessageComponent() || (interaction.isModalSubmit() && interaction.isFromMessage())) {
+        if (isUpdateableNeedsReply(interaction)) {
             setTimeout(async () => {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.deferUpdate();
@@ -66,7 +62,7 @@ export class MessageUpdater {
 
     private lastPayload: BaseMessageOptions | null = null;
     async updateMessage(options: BaseMessageOptions) {
-        if(this.tokenExpired) {
+        if (this.tokenExpired) {
             console.log("[discord-jsx-renderer] Tried to updateMessage on an expired interaction");
             return;
         };
@@ -74,7 +70,7 @@ export class MessageUpdater {
         try {
             await this.updateMessageRaw(options);
             this.lastPayload = options;
-        } catch(e) {
+        } catch (e) {
             await this.handleError(e as Error);
         }
     }
@@ -82,12 +78,12 @@ export class MessageUpdater {
     // Error handling
 
     async handleError(error: Error) {
-        if(error instanceof DiscordAPIError && error.code == 10062) {
+        if (error instanceof DiscordAPIError && error.code == 10062) {
             this.tokenExpired = true;
             return;
         }
 
-        if(error instanceof DiscordAPIError) console.log(inspect(error.requestBody, { depth: Infinity }));
+        if (error instanceof DiscordAPIError) console.log(inspect(error.requestBody, { depth: Infinity }));
 
         await this.showErrorMessage(error);
     }
@@ -97,10 +93,10 @@ export class MessageUpdater {
 
         try {
             await this.updateMessageRaw(options);
-        } catch(e) {
+        } catch (e) {
             console.log("[jsx/updater] Couldn't show render-error message for:", error);
             console.log("[jsx/updater] Error thrown while trying to show error message:", e);
-            if(e instanceof DiscordAPIError) console.log(inspect(e.requestBody, { depth: Infinity }));
+            if (e instanceof DiscordAPIError) console.log(inspect(e.requestBody, { depth: Infinity }));
         }
     }
 
@@ -112,7 +108,7 @@ export class MessageUpdater {
             codeBlock(e.toString()),
         ].join("\n");
 
-        if(this.flags.includes(MessageFlags.IsComponentsV2)) {
+        if (this.flags.includes(MessageFlags.IsComponentsV2)) {
             return {
                 components: [
                     {
@@ -137,23 +133,50 @@ export class MessageUpdater {
     // Raw
 
     async updateMessageRaw(options: BaseMessageOptions) {
-        if (this.interaction.replied || this.interaction.deferred) {
-            await this.interaction.editReply(options);
-        } else {
-            if (
-                this.interaction.isChatInputCommand()
-                || (this.interaction.isModalSubmit() && !this.interaction.isFromMessage())
-            ) {
-                await this.interaction.reply({
+        if (this.interaction instanceof BaseInteraction) {
+            if (this.interaction.replied || this.interaction.deferred) {
+                await this.interaction.editReply({
                     ...options,
-                    flags: this.flags,
+                    flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
                 });
-            } else if (
-                this.interaction.isMessageComponent()
-                || (this.interaction.isModalSubmit() && this.interaction.isFromMessage())
-            ) {
-                await this.interaction.update(options);
+            } else {
+                if (
+                    this.interaction.isChatInputCommand()
+                    || (this.interaction.isModalSubmit() && !this.interaction.isFromMessage())
+                ) {
+                    await this.interaction.reply({
+                        ...options,
+                        flags: pickMessageFlags(this.flags, [
+                            MessageFlags.Ephemeral,
+                            MessageFlags.SuppressEmbeds,
+                            MessageFlags.SuppressNotifications,
+                            MessageFlags.IsComponentsV2,
+                        ]),
+                    });
+                } else if (
+                    this.interaction.isMessageComponent()
+                    || (this.interaction.isModalSubmit() && this.interaction.isFromMessage())
+                ) {
+                    await this.interaction.update({
+                        ...options,
+                        flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
+                    });
+                }
             }
+        } else if (this.interaction instanceof Message) {
+            await this.interaction.edit({
+                ...options,
+                flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds]),
+            });
+        } else if (this.interaction instanceof BaseChannel || this.interaction instanceof User) {
+            this.interaction = await this.interaction.send({
+                ...options,
+                flags: pickMessageFlags(this.flags, [
+                    MessageFlags.SuppressEmbeds,
+                    MessageFlags.SuppressNotifications,
+                    MessageFlags.IsComponentsV2,
+                ]),
+            });
         }
     }
 
@@ -166,12 +189,12 @@ export class MessageUpdater {
     }
 
     async disable() {
-        if(!this.lastPayload) return;
-        if(this.tokenExpired) return;
+        if (!this.lastPayload) return;
+        if (this.tokenExpired) return;
 
         try {
             await this.updateMessage(markComponentsDisabled(this.lastPayload));
-        } catch(e) {
+        } catch (e) {
             console.log(e);
         }
     }
