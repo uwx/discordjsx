@@ -73,9 +73,12 @@ Finally, you can add these to your `tsconfig.json`:
   "compilerOptions": {
     "jsx": "react-jsx",
     "types": ["pure-react-types"],
+    "lib": ["ESNext"],
   },
 }
 ```
+
+You *should* specify `lib` because the default value includes `"DOM"` so it pollutes your types.
 
 ## Usage
 
@@ -87,7 +90,7 @@ import { DJSXRendererManager } from "discord-jsx-renderer";
 export const djsx = new DJSXRendererManager();
 ```
 
-On your `InteractionCreate` event, call `dispatchInteraction` - this will handle all rendered event callbacks, edit the message if neccesary and so on.
+On your `InteractionCreate` event, call `djsx.dispatchInteraction`. If you dont, you won't be able to use `onClick` or `onSelect`.
 
 ```ts
 client.on(Events.InteractionCreate, (interaction: Interaction) => {
@@ -97,7 +100,7 @@ client.on(Events.InteractionCreate, (interaction: Interaction) => {
 
 Thats all you need for the setup.
 
-To render a component in reply to a `ChatInputInteraction` (slash command), use `create`:
+To render a react component, simply call `djsx.create(target, element)`: 
 
 ```jsx
 client.on(Events.InteractionCreate, (interaction) => {
@@ -118,11 +121,11 @@ module.exports = {
 };
 ```
 
-You can also reply to `ModalSubmitInteraction`s.
+You can reply to almost all kinds of interactions or even pass a `Message` or any `Channel` to the first argument!
 
 ## Elements
 
-See [docs/Elements.md](./docs/Elements.md) for a list of the JSX elements you can use to structure your components.
+See [docs/Elements.md](./docs/Elements.md) for a list of the built-in JSX elements you can use to structure your components.
 
 ## Features
 
@@ -191,7 +194,8 @@ How does it work?
 `discord-jsx-renderer` is compromised of 4 things:
 - `reconciler` (`JSXRenderer`) is a custom react renderer that renders the jsx into our own internal structure and also handles other stuff such as effects/state/hooks managment, re-rendering, commits, scheduling etc.
 - `PayloadBuilder` parses the output from reconciler and builds a discord payload to use for the REST API. It also collects all the event handlers attached to the JSX. *If you are going to use it, please make a new class per message/payload*
-- `DJSXRenderer` uses reconciler and PayloadBuilder to update the message and handle any attached events like `onClick` on a button component.
+- `MessageUpdater` handles updating the message from all sorts of sources, it also keeps track of interaction expiry, handles unreplied interactions and handles disabling
+- `DJSXRenderer` brings MessageUpdater, PayloadBuilder and reconciler together
 - `DJSXRendererManager` manages multiple renderers and helps dispatch any new interaction events from the `discord.js` client to the renderer. You can use the renderer itself but you will need to handle dispatching interactions and cleanup yourself too.
 
 **Custom Ids:** If you use the `customId` prop on a jsx element, the `onClick` will **not** work. This is because the renderer creates its own customId's when they are missing and the generated ones include a prefix identifying that renderer. This was done so that the renderer can use `interaction.deferUpdate` if the react component does not re-render to cause a reply to the message component interaction.
