@@ -1,3 +1,3 @@
 export * from "./types"
 export * from "./DJSXRenderer"
-export * from "./InteractionMessageUpdater"
+export * from "./MessageUpdater"
