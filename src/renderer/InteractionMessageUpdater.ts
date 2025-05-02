@@ -49,7 +49,12 @@ export class InteractionMessageUpdater extends (EventEmitter as new () => TypedE
             this.tokenExpiryTimeout = setTimeout(this.onTokenExpired.bind(this), INTERACTION_TOKEN_TIMEOUT);
         }
 
-        if (interaction.isMessageComponent() || (interaction.isModalSubmit() && interaction.isFromMessage())) {
+        if (
+            !(interaction instanceof Message) &&
+            !(interaction instanceof BaseChannel) &&
+            !(interaction instanceof User) &&
+            (interaction.isMessageComponent() || (interaction.isModalSubmit() && interaction.isFromMessage()))
+        ) {
             setTimeout(async () => {
                 if (!interaction.replied && !interaction.deferred) {
                     await interaction.deferUpdate();
