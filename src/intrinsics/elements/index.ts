@@ -4,8 +4,6 @@ import type { UnfurledMediaResolvable } from "./base";
 import type { SelectProps } from "./select";
 import type { ButtonProps } from "./button";
 
-export const globalSuspense = '$$globalSuspense';
-
 export interface DJSXElements {
     // main elements
     message: PropsWithChildren<{

@@ -49,10 +49,9 @@ export class PayloadBuilder {
         return node.children.map(this.getText.bind(this)).join("");
     }
 
-    createMessage(node: InternalNode): MessagePayloadOutput | { suspended: true } {
+    createMessage(node: InternalNode): MessagePayloadOutput {
         if(this.used) throw new Error("You cannot re-use PayloadBuilder - please create a new one");
         this.used = true;
-        if (node.type === globalSuspense) return { suspended: true };
         if (node.type !== "message") throw new Error("Element isn't <message>");
 
         let flags: MessageFlags[] = [];
