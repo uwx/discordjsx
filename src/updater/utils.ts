@@ -1,9 +1,9 @@
-import { BaseInteraction, MessageFlags } from "discord.js";
+import { BaseInteraction, ButtonInteraction, MessageFlags, ModalMessageModalSubmitInteraction } from "discord.js";
 import { MessageUpdateable } from "./types";
 
 export const isUpdateableNeedsReply = (
     interaction: MessageUpdateable
-) => {
+): interaction is ButtonInteraction | ModalMessageModalSubmitInteraction => {
     return (
         interaction instanceof BaseInteraction
         && (

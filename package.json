@@ -2,6 +2,7 @@
     "name": "discord-jsx-renderer",
     "version": "0.0.7",
     "description": "React for discord.js",
+    "type": "module",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "files": [
