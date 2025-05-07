@@ -130,7 +130,7 @@ export class PayloadBuilder {
 
                 return {
                     type: 11,
-                    media: { url: node.props.media },
+                    media: typeof node.props.media === 'string' ? { url: node.props.media } : node.props.media,
                     description: node.props.description,
                     spoiler: node.props.spoiler,
                 };
@@ -144,22 +144,22 @@ export class PayloadBuilder {
             case "file":
                 return {
                     type: 13,
-                    file: { url: node.props.file },
+                    file: typeof node.props.file === 'string' ? { url: node.props.file } : node.props.file,
                     spoiler: node.props.spoiler,
-                }
+                };
             case "separator":
                 return {
                     type: 14,
                     divider: node.props.divider,
                     spacing: node.props.spacing == "lg" ? 2 : 1,
-                }
+                };
             case "container":
                 return {
                     type: 17,
                     components: this.toDiscordComponentsArray(node.children) as any,
                     accent_color: node.props.color ? resolveColor(node.props.color) : undefined,
                     spoiler: node.props.spoiler,
-                }
+                };
             default:
                 return null;
         }
