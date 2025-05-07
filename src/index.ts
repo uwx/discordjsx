@@ -1,4 +1,4 @@
-// export * from "./intrinsics";
+export * from "./intrinsics/index.js";
 export * from "./manager/index.js";
 export * from "./payload/index.js";
 export * from "./reconciler/index.js";
