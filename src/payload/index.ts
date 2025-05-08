@@ -1,10 +1,12 @@
-import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageTopLevelComponent } from "discord.js";
+import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageTopLevelComponent, APIUnfurledMediaItem } from "discord.js";
 import { ComponentType, MessageFlags, resolveColor } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "../types/index.js";
 import type { MessagePayloadOutput, ModalPayloadOutput } from "./types.js";
 import type { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button.js";
+import { UnfurledMediaResolvable } from "src/intrinsics/elements/base.js";
+import { DJSXElements } from "src/intrinsics/elements/index.js";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -139,7 +141,16 @@ export class PayloadBuilder {
 
                 return {
                     type: 12,
-                    items: node.children.map(child => child.props as APIMediaGalleryItem),
+                    items: node.children
+                        .filter(child => child.type === 'gallery-item')
+                        .map(child => {
+                            const props = child.props as DJSXElements['gallery-item'];
+                            return {
+                                media: typeof props.media === 'string' ? { url: props.media } : props.media,
+                                description: props.description,
+                                spoiler: props.spoiler,
+                            };
+                        }),
                 };
             case "file":
                 return {
