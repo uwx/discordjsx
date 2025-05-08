@@ -1,4 +1,4 @@
-import type { APIMediaGalleryItem, APISelectMenuOption, ColorResolvable } from "discord.js";
+import type { APIMediaGalleryItem, APISelectMenuOption, APIUnfurledMediaItem, ColorResolvable, APIEmbedThumbnail, APIEmbedImage } from "discord.js";
 import type { PropsWithChildren } from "react";
 import type { UnfurledMediaResolvable } from "./base.d.ts";
 import type { SelectProps } from "./select.d.ts";
@@ -47,14 +47,18 @@ export interface DJSXElements {
     thumbnail: {
         description?: string;
         spoiler?: boolean;
-        media?: UnfurledMediaResolvable;
+        media?: APIUnfurledMediaItem | UnfurledMediaResolvable;
     } & React.JSX.IntrinsicAttributes;
 
     gallery: PropsWithChildren & React.JSX.IntrinsicAttributes;
-    'gallery-item': APIMediaGalleryItem & React.JSX.IntrinsicAttributes;
+    'gallery-item': {
+        media: APIUnfurledMediaItem | UnfurledMediaResolvable;
+        description?: string | null;
+        spoiler?: boolean;
+    } & React.JSX.IntrinsicAttributes;
 
     file: {
-        file: UnfurledMediaResolvable;
+        file: APIUnfurledMediaItem | UnfurledMediaResolvable;
         spoiler?: boolean;
     } & React.JSX.IntrinsicAttributes;
 

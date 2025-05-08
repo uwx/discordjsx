@@ -1,10 +1,12 @@
-import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageTopLevelComponent } from "discord.js";
+import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageTopLevelComponent, APIUnfurledMediaItem } from "discord.js";
 import { ComponentType, MessageFlags, resolveColor } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "../types/index.js";
 import type { MessagePayloadOutput, ModalPayloadOutput } from "./types.js";
 import type { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button.js";
+import { UnfurledMediaResolvable } from "src/intrinsics/elements/base.js";
+import { DJSXElements } from "src/intrinsics/elements/index.js";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -131,7 +133,7 @@ export class PayloadBuilder {
 
                 return {
                     type: 11,
-                    media: { url: node.props.media },
+                    media: typeof node.props.media === 'string' ? { url: node.props.media } : node.props.media,
                     description: node.props.description,
                     spoiler: node.props.spoiler,
                 };
@@ -140,27 +142,36 @@ export class PayloadBuilder {
 
                 return {
                     type: 12,
-                    items: node.children.map(child => child.props as APIMediaGalleryItem),
+                    items: node.children
+                        .filter(child => child.type === 'gallery-item')
+                        .map(child => {
+                            const props = child.props as DJSXElements['gallery-item'];
+                            return {
+                                media: typeof props.media === 'string' ? { url: props.media } : props.media,
+                                description: props.description,
+                                spoiler: props.spoiler,
+                            };
+                        }),
                 };
             case "file":
                 return {
                     type: 13,
-                    file: { url: node.props.file },
+                    file: typeof node.props.file === 'string' ? { url: node.props.file } : node.props.file,
                     spoiler: node.props.spoiler,
-                }
+                };
             case "separator":
                 return {
                     type: 14,
                     divider: node.props.divider,
                     spacing: node.props.spacing == "lg" ? 2 : 1,
-                }
+                };
             case "container":
                 return {
                     type: 17,
                     components: this.toDiscordComponentsArray(node.children) as any,
                     accent_color: node.props.color ? resolveColor(node.props.color) : undefined,
                     spoiler: node.props.spoiler,
-                }
+                };
             default:
                 return null;
         }
