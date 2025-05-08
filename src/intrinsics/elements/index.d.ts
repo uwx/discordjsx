@@ -1,4 +1,4 @@
-import type { APIMediaGalleryItem, APISelectMenuOption, ColorResolvable, APIEmbedThumbnail, APIEmbedImage } from "discord.js";
+import type { APIMediaGalleryItem, APISelectMenuOption, APIUnfurledMediaItem, ColorResolvable, APIEmbedThumbnail, APIEmbedImage } from "discord.js";
 import type { PropsWithChildren } from "react";
 import type { UnfurledMediaResolvable } from "./base.d.ts";
 import type { SelectProps } from "./select.d.ts";
