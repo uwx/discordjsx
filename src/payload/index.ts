@@ -45,9 +45,62 @@ export class PayloadBuilder {
         this.everythingDisabled = everythingDisabled;
     }
 
-    private getText(node: InternalNode): string {
-        if (node.type == "#text") return node.props.text as string;
-        return node.children.map(this.getText.bind(this)).join("");
+    private getText(node: InternalNode, listType?: 'ol' | 'ul'): string {
+        const getChildText = () => {
+            return node.children.map(e => this.getText(e)).join("");
+        }
+
+        switch (node.type) {
+            case "#text":
+                return node.props.text as string;
+            case "br":
+                return '\n';
+            case "u":
+                return `__${getChildText()}__`;
+            case "b":
+                return `**${getChildText()}**`;
+            case "i":
+                return `_${getChildText()}_`;
+            case "s":
+                return `~~${getChildText()}~~`; 
+            case "code":
+                return `\`${getChildText()}\``; 
+            case "pre":
+                return `\`\`\`${node.props.language ?? ''}\n${getChildText()}\`\`\``;  
+            case "emoji":
+                return `<${node.props.animated ? 'a' : ''}:${node.props.name ?? '_'}:${node.props.id}>`
+            case "ul":
+                return `${node.children.map(e => this.getText(e, 'ul')).join("\n")}\n`;
+            case "ol":
+                return `${node.children.map(e => this.getText(e, 'ol')).join("\n")}\n`;
+            case "li":
+                return `\n${listType === 'ol' ? '1.' : '- '}${getChildText()}`; 
+            case "h1":
+                return `\n# ${getChildText()}\n`;
+            case "h2":
+                return `\n## ${getChildText()}\n`;
+            case "h3":
+                return `\n### ${getChildText()}\n`;
+            case "subtext":
+                return `\n-# ${getChildText()}\n`; 
+            case "spoiler":
+                return `||${getChildText()}||`;
+            case "a":
+                const childText = getChildText();
+                if (!childText) return `<${node.props.href}>`;
+                return `[${childText}](${node.props.href}${node.props.alt ? ` "${node.props.alt}"` : ''})`;
+            case "timestamp":
+                return `<t:${node.props.time}:${node.props.format ?? 'f'}>`;
+            case "mention":
+                if (node.props.user) return `<@${node.props.user}>`;
+                if (node.props.member) return `<@!${node.props.member}>`;
+                if (node.props.channel) return `<#${node.props.channel}>`;
+                if (node.props.role) return `<@&${node.props.role}>`;
+                if (node.props.command) return `<@${node.props.command}>`;
+                return "";
+            default:
+                return getChildText();
+        }
     }
 
     createMessage(node: InternalNode): MessagePayloadOutput {
