@@ -7,6 +7,8 @@ import { reconciler } from "./reconciler.js";
 export type JSXRendererEventMap = {
     render: (container: HostContainer) => void;
     renderError: (e: Error) => void;
+    caughtError: (e: Error) => void;
+    recoverableError: (e: Error) => void;
     containerUpdated: () => void;
 };
 
@@ -22,14 +24,29 @@ export class JSXRenderer {
             onRender: () => this.emitter.emit("render", this.container),
         };
 
-        this.fiberRoot = reconciler.createContainer(
+        // WARNING: Typings are outdeated
+        this.fiberRoot = (reconciler.createContainer as any)(
+            // containerInfo: Container
             this.container,
+            // tag: RootTag
             ConcurrentRoot,
+            // hydrationCallbacks: null | SuspenseHydrationCallbacks<SuspenseInstance>
             null,
+            // isStrictMode: boolean
             false,
+            // concurrentUpdatesByDefaultOverride: null | boolean
             null,
+            // identifierPrefix: string
             "discordjsx",
-            (e) => this.emitter.emit("renderError", e),
+            // onUncaughtError: (error: Error) => void
+            (e: Error, errorInfo: React.ErrorInfo) => this.emitter.emit("renderError", e),
+            // onCaughtError: (error: Error) => void
+            (e: Error, errorInfo: React.ErrorInfo) => this.emitter.emit("caughtError", e),
+            // onRecoverableError: (error: Error) => void
+            (e: Error, errorInfo: React.ErrorInfo) => this.emitter.emit("recoverableError", e),
+            // onDefaultTransitionIndicator: () => (void | (() => void))
+            () => {},
+            // transitionCallbacks: null | TransitionTracingCallbacks
             null
         );
     }
