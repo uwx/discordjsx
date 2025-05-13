@@ -1,5 +1,5 @@
 import type { HostConfig } from "react-reconciler";
-import { DefaultEventPriority } from "react-reconciler/constants.js";
+import { DefaultEventPriority, NoEventPriority } from "react-reconciler/constants.js";
 import type { HostContainer, InternalNode } from "./types.js";
 
 export type HostConfigProps = {
@@ -18,6 +18,8 @@ export type HostConfigProps = {
     NoTimeout: -1;
 };
 
+let currentUpdatePriority = NoEventPriority;
+
 export const InternalHostConfig: HostConfig<
     HostConfigProps["Type"],
     HostConfigProps["Props"],
@@ -32,7 +34,21 @@ export const InternalHostConfig: HostConfig<
     HostConfigProps["ChildSet"],
     HostConfigProps["TimeoutHandle"],
     HostConfigProps["NoTimeout"]
-> = {
+> = mixin<HostConfig<
+    HostConfigProps["Type"],
+    HostConfigProps["Props"],
+    HostConfigProps["Container"],
+    HostConfigProps["Instance"],
+    HostConfigProps["TextInstance"],
+    HostConfigProps["SuspenseInstance"],
+    HostConfigProps["HydratableInstance"],
+    HostConfigProps["PublicInstance"],
+    HostConfigProps["HostContext"],
+    HostConfigProps["UpdatePayload"],
+    HostConfigProps["ChildSet"],
+    HostConfigProps["TimeoutHandle"],
+    HostConfigProps["NoTimeout"]
+>>({
     // Properties
     supportsMutation: true,
     supportsPersistence: false,
@@ -59,7 +75,7 @@ export const InternalHostConfig: HostConfig<
 
     // Instance Updates
     // @ts-ignore
-    commitUpdate: (node, type: string, prev: any, next:any, handle: any) => {
+    commitUpdate: (node, type: string, prev: any, next:  any, handle: any) => {
         let { children, key, ref, ...props } = next;
         node.props = props;
     },
@@ -106,9 +122,9 @@ export const InternalHostConfig: HostConfig<
     NotPendingTransition: null,
 
     resetFormInstance() {},
-    setCurrentUpdatePriority: (newPriority: number) => {},
-    getCurrentUpdatePriority: () => DefaultEventPriority,
-    resolveUpdatePriority: () => DefaultEventPriority,
+    setCurrentUpdatePriority: (newPriority: number) => { currentUpdatePriority = newPriority },
+    getCurrentUpdatePriority: () => currentUpdatePriority,
+    resolveUpdatePriority: () => currentUpdatePriority || DefaultEventPriority,
 
     // Commit
     prepareForCommit: () => null,
@@ -125,7 +141,18 @@ export const InternalHostConfig: HostConfig<
     supportsMicrotasks: true,
     scheduleMicrotask: queueMicrotask,
     getCurrentEventPriority: () => DefaultEventPriority,
-};
+});
 
-
-
+function mixin<T extends object>(obj: T): T {
+    const mixedIn = {...obj};
+    for (const key in mixedIn) {
+        if (typeof mixedIn[key] === "function") {
+            const f = mixedIn[key]
+            mixedIn[key] = function (this: any, ...args: any[]) {
+                console.log(`[discordjsx] ${key}`, ...args.map(e => e?.toString()));
+                return f.apply(this, args);
+            } as any;
+        }
+    }
+    return mixedIn;
+}

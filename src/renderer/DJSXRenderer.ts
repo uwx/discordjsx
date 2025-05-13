@@ -6,6 +6,7 @@ import { HostContainer, JSXRenderer } from "../reconciler/index.js";
 import { DJSXEventHandlerMap } from "../types/index.js";
 import { MessageUpdater, MessageUpdateable } from "../updater/index.js";
 import { PayloadBuilder } from "../payload/index.js";
+import { inspect } from "node:util";
 
 export class DJSXRenderer {
     key?: string = v4();
@@ -76,6 +77,7 @@ export class DJSXRenderer {
     }
 
     private async onRender(container: HostContainer) {
+        console.log('onRender', inspect(container, { depth: Infinity }));
         if (!container.node) return;
         
         try {
