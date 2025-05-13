@@ -96,7 +96,7 @@ export class PayloadBuilder {
                 if (node.props.member) return `<@!${node.props.member}>`;
                 if (node.props.channel) return `<#${node.props.channel}>`;
                 if (node.props.role) return `<@&${node.props.role}>`;
-                if (node.props.command) return `<@${node.props.command}>`;
+                if (node.props.command) return `<@/${node.props.command}>`;
                 return "";
             default:
                 return getChildText();
