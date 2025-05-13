@@ -19,13 +19,23 @@ export class MessageUpdater {
     tokenExpired: boolean = false;
     emitter = createNanoEvents<InteractionMessageUpdaterEventMap>();
 
-    flags: MessageFlags[] = [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral];
+    flags: MessageFlags[] = [MessageFlags.IsComponentsV2];
 
     private tokenExpiryTimeout: NodeJS.Timeout | null = null;
 
     constructor(target: MessageUpdateable) {
         this.target = target;
         this.setTarget(target);
+
+        if (target instanceof BaseInteraction && target.isRepliable()) {
+            setTimeout(async () => {
+                if (!target.replied && !target.deferred) {
+                    await target.deferReply({
+                        flags: this.flags
+                    });
+                }
+            }, REPLY_TIMEOUT);
+        }
     }
 
     setTarget(target: MessageUpdateable) {
@@ -133,7 +143,7 @@ export class MessageUpdater {
 
     async updateMessageRaw(options: BaseMessageOptions) {
         if (this.target instanceof BaseInteraction) {
-            if (this.target.replied || this.target.deferred) {
+            if (this.target.isRepliable() && (this.target.replied || this.target.deferred)) {
                 await this.target.editReply({
                     ...options,
                     flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
@@ -167,8 +177,17 @@ export class MessageUpdater {
                 ...options,
                 flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
             });
-        } else if (this.target instanceof BaseChannel || this.target instanceof User) {
+        } else if (this.target instanceof BaseChannel && this.target.isSendable()) {
             this.target = await this.target.send({
+                ...options,
+                flags: pickMessageFlags(this.flags, [
+                    MessageFlags.SuppressEmbeds,
+                    MessageFlags.SuppressNotifications,
+                    MessageFlags.IsComponentsV2,
+                ]),
+            });
+        } else if (this.target instanceof User) {
+            this.target = await (await this.target.createDM()).send({
                 ...options,
                 flags: pickMessageFlags(this.flags, [
                     MessageFlags.SuppressEmbeds,
