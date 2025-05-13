@@ -57,7 +57,7 @@ export class DJSXRenderer {
         if (interaction.isButton()) {
             let cb = this.events?.button?.get(interaction.customId);
             cb?.(interaction);
-        } else if (interaction.isAnySelectMenu()) {
+        } else if ('isAnySelectMenu' in interaction ? interaction.isAnySelectMenu() : interaction.isSelectMenu()) {
             let cb = this.events?.select?.get(interaction.customId);
             cb?.(interaction.values, interaction);
         } else if (interaction.isModalSubmit()) {
