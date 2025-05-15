@@ -1,5 +1,5 @@
 import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageTopLevelComponent, APIUnfurledMediaItem } from "discord.js";
-import { ComponentType, MessageFlags, resolveColor } from "discord.js";
+import { ApplicationCommand, blockQuote, bold, channelMention, chatInputApplicationCommandMention, codeBlock, ComponentType, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, MessageFlags, resolveColor, roleMention, spoiler, strikethrough, subtext, time, underline, userMention } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "../types/index.js";
@@ -56,19 +56,25 @@ export class PayloadBuilder {
             case "br":
                 return '\n';
             case "u":
-                return `__${getChildText()}__`;
+                return underline(getChildText());
             case "b":
-                return `**${getChildText()}**`;
+                return bold(getChildText());
             case "i":
-                return `_${getChildText()}_`;
+                return italic(getChildText());
             case "s":
-                return `~~${getChildText()}~~`; 
+                return strikethrough(getChildText()); 
             case "code":
-                return `\`${getChildText()}\``; 
+                return inlineCode(getChildText());
             case "pre":
-                return `\`\`\`${node.props.language ?? ''}\n${getChildText()}\`\`\``;  
+                return codeBlock(node.props.language ?? '', getChildText());
+            case "blockquote":
+                return `\n${blockQuote(getChildText())}\n`;
             case "emoji":
-                return `<${node.props.animated ? 'a' : ''}:${node.props.name ?? '_'}:${node.props.id}>`
+                return formatEmoji({
+                    animated: node.props.animated,
+                    id: node.props.id,
+                    name: node.props.name ?? '_',
+                });
             case "ul":
                 return `${node.children.map(e => this.getText(e, 'ul')).join("\n")}\n`;
             case "ol":
@@ -76,27 +82,37 @@ export class PayloadBuilder {
             case "li":
                 return `\n${listType === 'ol' ? '1.' : '- '}${getChildText()}`; 
             case "h1":
-                return `\n# ${getChildText()}\n`;
+                return `\n${heading(getChildText(), 1)}\n`;
             case "h2":
-                return `\n## ${getChildText()}\n`;
+                return `\n${heading(getChildText(), 2)}\n`;
             case "h3":
-                return `\n### ${getChildText()}\n`;
+                return `\n${heading(getChildText(), 3)}\n`;
             case "subtext":
-                return `\n-# ${getChildText()}\n`; 
+                return `\n${subtext(getChildText())}\n`;
             case "spoiler":
-                return `||${getChildText()}||`;
+                return spoiler(getChildText());
             case "a":
                 const childText = getChildText();
-                if (!childText) return `<${node.props.href}>`;
-                return `[${childText}](${node.props.href}${node.props.alt ? ` "${node.props.alt}"` : ''})`;
+                if (!childText) return hideLinkEmbed(node.props.href);
+                if (node.props.alt) return hyperlink(childText, node.props.href);
+                return hyperlink(childText, node.props.href, node.props.alt);
             case "timestamp":
-                return `<t:${node.props.time}:${node.props.format ?? 'f'}>`;
+                return time(node.props.time, node.props.format ?? 'f');
             case "mention":
-                if (node.props.user) return `<@${node.props.user}>`;
+                if (node.props.user) return userMention(node.props.user);
                 if (node.props.member) return `<@!${node.props.member}>`;
-                if (node.props.channel) return `<#${node.props.channel}>`;
-                if (node.props.role) return `<@&${node.props.role}>`;
-                if (node.props.command) return `<@/${node.props.command}>`;
+                if (node.props.channel) return channelMention(node.props.channel);
+                if (node.props.role) return roleMention(node.props.role);
+                if (node.props.command) {
+                    const commandId = node.props.command instanceof ApplicationCommand ? node.props.command.id : node.props.command;
+                    if (node.props.subcommandGroupName) {
+                        return chatInputApplicationCommandMention(node.props.commandName, node.props.subcommandGroupName, node.props.subcommandName, commandId);
+                    }
+                    if (node.props.subcommandName) {
+                        return chatInputApplicationCommandMention(node.props.commandName, node.props.subcommandName, commandId);
+                    }
+                    return chatInputApplicationCommandMention(node.props.commandName ?? '_', commandId);
+                }
                 return "";
             default:
                 return getChildText();
