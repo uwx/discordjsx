@@ -193,14 +193,14 @@ export class PayloadBuilder {
                 };
             case "text":
                 return {
-                    type: 10,
+                    type: ComponentType.TextDisplay,
                     content: this.getText(node),
                 };
             case "thumbnail":
                 if (!node.props.media) return null;
 
                 return {
-                    type: 11,
+                    type: ComponentType.Thumbnail,
                     media: typeof node.props.media === 'string' ? { url: node.props.media } : node.props.media,
                     description: node.props.description,
                     spoiler: node.props.spoiler,
@@ -209,7 +209,7 @@ export class PayloadBuilder {
                 if (!node.children) return null;
 
                 return {
-                    type: 12,
+                    type: ComponentType.MediaGallery,
                     items: node.children
                         .filter(child => child.type === 'gallery-item')
                         .map(child => {
@@ -223,19 +223,19 @@ export class PayloadBuilder {
                 };
             case "file":
                 return {
-                    type: 13,
+                    type: ComponentType.File,
                     file: typeof node.props.file === 'string' ? { url: node.props.file } : node.props.file,
                     spoiler: node.props.spoiler,
                 };
             case "separator":
                 return {
-                    type: 14,
+                    type: ComponentType.Separator,
                     divider: node.props.divider,
-                    spacing: node.props.spacing == "lg" ? 2 : 1,
+                    spacing: node.props.spacing === "lg" ? 2 : 1,
                 };
             case "container":
                 return {
-                    type: 17,
+                    type: ComponentType.Container,
                     components: this.toDiscordComponentsArray(node.children) as any,
                     accent_color: node.props.color ? resolveColor(node.props.color) : undefined,
                     spoiler: node.props.spoiler,
@@ -250,13 +250,13 @@ export class PayloadBuilder {
         if(!c) throw new Error();
 
         if(
-            c.type == ComponentType.StringSelect
-            || c.type == ComponentType.UserSelect
-            || c.type == ComponentType.RoleSelect
-            || c.type == ComponentType.MentionableSelect
-            || c.type == ComponentType.ChannelSelect
-            || c.type == ComponentType.Button
-            || c.type == ComponentType.Thumbnail
+            c.type === ComponentType.StringSelect
+            || c.type === ComponentType.UserSelect
+            || c.type === ComponentType.RoleSelect
+            || c.type === ComponentType.MentionableSelect
+            || c.type === ComponentType.ChannelSelect
+            || c.type === ComponentType.Button
+            || c.type === ComponentType.Thumbnail
         ) throw new Error();
 
         return c;
@@ -300,7 +300,7 @@ export class PayloadBuilder {
             max_values: node.props.max,
             disabled: this.everythingDisabled ? true : node.props.disabled,
             placeholder: node.props.placeholder,
-            ...(node.props.type == "string" ? {
+            ...(node.props.type === "string" ? {
                 options: node.children.map(child => ({
                     label: (child as InstrinsicNodesMap["option"]).props.label,
                     value: (child as InstrinsicNodesMap["option"]).props.value,
@@ -309,13 +309,13 @@ export class PayloadBuilder {
                     default: (node.props.defaultValues as string[] | undefined)?.includes((child as InstrinsicNodesMap["option"]).props.value),
                 })),
             } : {}),
-            ...(node.props.type == "user" || node.props.type == "role" ? {
+            ...(node.props.type === "user" || node.props.type === "role" ? {
                 default_values: node.props.defaultValues?.map(id => ({ id, type: node.props.type })) as any,
             } : {}),
-            ...(node.props.type == "mentionable" ? {
+            ...(node.props.type === "mentionable" ? {
                 default_values: node.props.defaultValues as any,
             } : {}),
-            ...(node.props.type == "channel" ? {
+            ...(node.props.type === "channel" ? {
                 channel_types: node.props.channelTypes,
                 default_values: node.props.defaultValues?.map(id => ({ id, type: "channel" })) as any,
             } : {}),
