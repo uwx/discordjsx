@@ -283,7 +283,7 @@ export class PayloadBuilder {
         };
     }
 
-    private resolveEmoji(emoji: EmojiResolvable | string): APIMessageComponentEmoji {
+    private resolveEmoji(emoji: EmojiResolvable | APIMessageComponentEmoji | string): APIMessageComponentEmoji {
         if (typeof emoji === 'string') {
             // Is formatted emoji
             if (emoji.startsWith('<') && emoji.endsWith('>')) {
