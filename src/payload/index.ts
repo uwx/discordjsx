@@ -1,4 +1,4 @@
-import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageTopLevelComponent, APIUnfurledMediaItem } from "discord.js";
+import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageComponentEmoji, APIMessageTopLevelComponent, APIUnfurledMediaItem, EmojiResolvable } from "discord.js";
 import { ApplicationCommand, blockQuote, bold, channelMention, chatInputApplicationCommandMention, codeBlock, ComponentType, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, MessageFlags, resolveColor, roleMention, spoiler, strikethrough, subtext, time, underline, userMention } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
@@ -279,7 +279,38 @@ export class PayloadBuilder {
             sku_id: (node.props as PremiumButtonProps).skuId,
             url: (node.props as LinkButtonProps).url,
             disabled: node.props.disabled,
-            emoji: node.props.emoji,
+            emoji: node.props.emoji ? this.resolveEmoji(node.props.emoji) : undefined,
+        };
+    }
+
+    private resolveEmoji(emoji: EmojiResolvable | string): APIMessageComponentEmoji {
+        if (typeof emoji === 'string') {
+            // Is formatted emoji
+            if (emoji.startsWith('<') && emoji.endsWith('>')) {
+                const emojiRe = /<a?:([a-zA-Z0-9_]+):(\d+)>/;
+
+                const match = emoji.match(emojiRe);
+                if (match) {
+                    return {
+                        name: match[1],
+                        id: match[2],
+                    };
+                }
+            }
+
+            // Is snowflake
+            if (Number.isInteger(Number(emoji))) {
+                return { id: emoji };
+            }
+            
+            // Is unicode emoji
+            return { name: emoji };
+        }
+
+        // Is emoji object
+        return {
+            name: emoji.name ?? undefined,
+            id: emoji.id ?? undefined,
         };
     }
 
