@@ -5,7 +5,7 @@ import type { DJSXEventHandler } from "../../types/events";
 export interface BaseButtonProps extends BaseInteractableProps {
     disabled?: boolean;
     /** A unicode emoji, or a formatted emoji mention, or an emoji ID, or an emoji object. */
-    emoji?: EmojiResolvable | string;
+    emoji?: EmojiResolvable | APIMessageComponentEmoji | string;
 };
 
 export interface DefaultButtonProps extends BaseButtonProps {
