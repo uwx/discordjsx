@@ -287,13 +287,14 @@ export class PayloadBuilder {
         if (typeof emoji === 'string') {
             // Is formatted emoji
             if (emoji.startsWith('<') && emoji.endsWith('>')) {
-                const emojiRe = /<a?:([a-zA-Z0-9_]+):(\d+)>/;
+                const emojiRe = /<(a?):([a-zA-Z0-9_]+):(\d+)>/;
 
                 const match = emoji.match(emojiRe);
                 if (match) {
                     return {
-                        name: match[1],
-                        id: match[2],
+                        name: match[2],
+                        id: match[3],
+                        animated: match[1] === 'a',
                     };
                 }
             }
@@ -311,6 +312,7 @@ export class PayloadBuilder {
         return {
             name: emoji.name ?? undefined,
             id: emoji.id ?? undefined,
+            animated: emoji.animated ?? undefined,
         };
     }
 
