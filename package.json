@@ -23,10 +23,6 @@
         "pure-react-types": "^0.1.4",
         "typescript": "5.2.2"
     },
-    "peerDependencies": {
-        "discord.js": "^14.19.2",
-        "react": "^19.1.0"
-    },
     "dependencies": {
         "nanoevents": "^9.1.0",
         "react-reconciler": "^0.32.0",
