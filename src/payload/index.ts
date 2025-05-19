@@ -326,8 +326,8 @@ export class PayloadBuilder {
         if (custom_id && (node.props as DefaultButtonProps).onClick) this.eventHandlers.button.set(custom_id, (node.props as DefaultButtonProps).onClick as any);
 
         return {
-            type: 2,
-            style,
+            type: ComponentType.Button,
+            style: style as any,
             label: this.getText(node),
             custom_id,
             sku_id: (node.props as PremiumButtonProps).skuId,
@@ -344,11 +344,11 @@ export class PayloadBuilder {
 
         return {
             type: {
-                string: 3,
-                user: 5,
-                role: 6,
-                mentionable: 7,
-                channel: 8,
+                string: ComponentType.StringSelect,
+                user: ComponentType.UserSelect,
+                role: ComponentType.RoleSelect,
+                mentionable: ComponentType.MentionableSelect,
+                channel: ComponentType.ChannelSelect,
             }[node.props.type],
             custom_id,
             min_values: node.props.min,
