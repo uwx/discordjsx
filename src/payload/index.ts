@@ -1,5 +1,5 @@
 import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageComponentEmoji, APIMessageTopLevelComponent, APIUnfurledMediaItem, EmojiResolvable } from "discord.js";
-import { ApplicationCommand, blockQuote, bold, channelMention, chatInputApplicationCommandMention, codeBlock, ComponentType, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, MessageFlags, resolveColor, roleMention, spoiler, strikethrough, subtext, time, underline, userMention } from "discord.js";
+import { ApplicationCommand, blockQuote, bold, ButtonStyle, channelMention, chatInputApplicationCommandMention, codeBlock, ComponentType, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, MessageFlags, resolveColor, roleMention, spoiler, strikethrough, subtext, time, underline, userMention } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "../types/index.js";
@@ -263,16 +263,21 @@ export class PayloadBuilder {
     }
 
     private toDiscordButtonComponent(node: InstrinsicNodesMap["button"]): APIButtonComponent {
-        let style = "skuId" in node.props ? 6 : (
-            "url" in node.props ? 5 : (["primary", "secondary", "success", "danger"].indexOf(node.props.style || "primary") + 1)
+        let style = "skuId" in node.props ? ButtonStyle.Premium : (
+            "url" in node.props ? ButtonStyle.Link : ({
+                "primary": ButtonStyle.Primary,
+                "secondary": ButtonStyle.Secondary,
+                "success": ButtonStyle.Success,
+                "danger": ButtonStyle.Danger,
+            }[node.props.style || "primary"])
         );
 
         const custom_id = !("skuId" in node.props || "url" in node.props) ? (node.props.customId || this.createCustomId()) : undefined;
         if (custom_id && (node.props as DefaultButtonProps).onClick) this.eventHandlers.button.set(custom_id, (node.props as DefaultButtonProps).onClick as any);
 
         return {
-            type: 2,
-            style,
+            type: ComponentType.Button,
+            style: style as any,
             label: this.getText(node),
             custom_id,
             sku_id: (node.props as PremiumButtonProps).skuId,
@@ -322,11 +327,11 @@ export class PayloadBuilder {
 
         return {
             type: {
-                string: 3,
-                user: 5,
-                role: 6,
-                mentionable: 7,
-                channel: 8,
+                string: ComponentType.StringSelect,
+                user: ComponentType.UserSelect,
+                role: ComponentType.RoleSelect,
+                mentionable: ComponentType.MentionableSelect,
+                channel: ComponentType.ChannelSelect,
             }[node.props.type],
             custom_id,
             min_values: node.props.min,
@@ -357,7 +362,7 @@ export class PayloadBuilder {
 
     private toDiscordTextInputComponent(node: InstrinsicNodesMap["text-input"]) {
         return {
-            type: 4,
+            type: ComponentType.TextInput,
             custom_id: node.props.customId,
             style: node.props.paragraph ? 2 : 1,
             label: node.props.label,
