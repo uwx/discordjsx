@@ -5,8 +5,8 @@ import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "../types/index.js";
 import type { MessagePayloadOutput, ModalPayloadOutput } from "./types.js";
 import type { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button.js";
-import { UnfurledMediaResolvable } from "src/intrinsics/elements/base.js";
-import { DJSXElements } from "src/intrinsics/elements/index.js";
+import { UnfurledMediaResolvable } from "../intrinsics/elements/base.js";
+import type { DJSXElements } from "../intrinsics/elements/index.js";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
