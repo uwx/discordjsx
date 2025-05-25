@@ -1,12 +1,14 @@
-import type { APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageComponentEmoji, APIMessageTopLevelComponent, APIUnfurledMediaItem, EmojiResolvable } from "discord.js";
+import type { APIAttachment, APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageComponentEmoji, APIMessageTopLevelComponent, APIUnfurledMediaItem, AttachmentPayload, BufferResolvable, ButtonInteraction, EmojiResolvable } from "discord.js";
 import { ApplicationCommand, blockQuote, bold, ButtonStyle, channelMention, chatInputApplicationCommandMention, codeBlock, ComponentType, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, MessageFlags, resolveColor, roleMention, spoiler, strikethrough, subtext, time, underline, userMention } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
-import type { DJSXEventHandlerMap } from "../types/index.js";
+import type { DJSXEventHandler, DJSXEventHandlerMap } from "../types/index.js";
 import type { MessagePayloadOutput, ModalPayloadOutput } from "./types.js";
 import type { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button.js";
 import { UnfurledMediaResolvable } from "../intrinsics/elements/base.js";
 import type { DJSXElements } from "../intrinsics/elements/index.js";
+import type Stream from "node:stream";
+import crypto from "node:crypto";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -18,16 +20,20 @@ type InstrinsicNodesMap = {
 
 type IntrinsicNode = InstrinsicNodesMap[keyof React.JSX.IntrinsicElements];
 
+const bufferOrStreamNameCache = new WeakMap<Buffer | Stream, string>();
+
 export class PayloadBuilder {
     private used?: boolean = false;
 
-    eventHandlers: DJSXEventHandlerMap = {
+    readonly eventHandlers: DJSXEventHandlerMap = {
         button: new Map(),
         select: new Map(),
         modalSubmit: new Map(),
     };
 
-    prefixCustomId: () => string = () => `djsx:auto:`;
+    readonly attachments = new Map<string, BufferResolvable | Stream>();
+
+    prefixCustomId: () => string = () => 'djsx:auto:';
     createCustomId = () => `${this.prefixCustomId()}:${v4()}`;
 
     private everythingDisabled?: boolean = false;
@@ -136,6 +142,8 @@ export class PayloadBuilder {
                 components: components as any,
                 content: node.props.v2 ? undefined : this.getText(node),
             },
+            eventHandlers: this.eventHandlers,
+            attachments: this.attachments,
         };
     }
 
@@ -143,7 +151,7 @@ export class PayloadBuilder {
         if(this.used) throw new Error("You cannot re-use PayloadBuilder - please create a new one");
         this.used = true;
 
-        const custom_id = node.props.customId || this.createCustomId();
+        const custom_id = (node.props as DJSXElements['modal']).customId || this.createCustomId();
         const components = this.toDiscordComponentsArray(node.children);
 
         if (node.props.onSubmit)
@@ -155,6 +163,7 @@ export class PayloadBuilder {
                 components: components as any,
                 custom_id,
             },
+            eventHandlers: this.eventHandlers,
         };
     }
 
@@ -201,7 +210,7 @@ export class PayloadBuilder {
 
                 return {
                     type: ComponentType.Thumbnail,
-                    media: typeof node.props.media === 'string' ? { url: node.props.media } : node.props.media,
+                    media: this.resolveAttachment(node.props.media),
                     description: node.props.description,
                     spoiler: node.props.spoiler,
                 };
@@ -215,7 +224,7 @@ export class PayloadBuilder {
                         .map(child => {
                             const props = child.props as DJSXElements['gallery-item'];
                             return {
-                                media: typeof props.media === 'string' ? { url: props.media } : props.media,
+                                media: this.resolveAttachment(props.media),
                                 description: props.description,
                                 spoiler: props.spoiler,
                             };
@@ -224,7 +233,7 @@ export class PayloadBuilder {
             case "file":
                 return {
                     type: ComponentType.File,
-                    file: typeof node.props.file === 'string' ? { url: node.props.file } : node.props.file,
+                    file: this.resolveAttachment(node.props.file), 
                     spoiler: node.props.spoiler,
                 };
             case "separator":
@@ -243,6 +252,40 @@ export class PayloadBuilder {
             default:
                 return null;
         }
+    }
+
+    protected bufferOrStreamFileName(stream: Buffer | Stream) {
+        if (bufferOrStreamNameCache.has(stream)) return bufferOrStreamNameCache.get(stream)!;
+
+        const name = v4();
+        bufferOrStreamNameCache.set(stream, name);
+        return name;
+    }
+
+    protected stringFileName(string: string) {
+        // TODO: this should not use the same prefix as it may make filenames guessable.
+        return crypto.createHash('sha256').update(this.prefixCustomId() + string).digest('base64url');
+    }
+
+    resolveAttachment(media: string | APIUnfurledMediaItem | BufferResolvable | Stream): APIUnfurledMediaItem {
+        if (typeof media === 'string') {
+            if (/^https?:\/\//.test(media)) {
+                return { url: media };
+            }
+
+            const name = this.stringFileName(media);
+            this.attachments.set(name, media);
+
+            return { url: `attachment://${name}` };
+        }
+
+        if ('url' in media) {
+            return media;
+        }
+        
+        const name = this.bufferOrStreamFileName(media);
+        this.attachments.set(name, media);
+        return { url: `attachment://${name}` };
     }
 
     private asAPIMessageTopLevelComponent(node: InternalNode): APIMessageTopLevelComponent {

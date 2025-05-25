@@ -1,4 +1,4 @@
-import { Interaction } from "discord.js";
+import { AttachmentPayload, Interaction } from "discord.js";
 import { v4 } from "uuid";
 import { createNanoEvents } from "nanoevents";
 import { DJSXRendererEventMap } from "./types.js";
@@ -7,6 +7,7 @@ import { DJSXEventHandlerMap } from "../types/index.js";
 import { MessageUpdater, MessageUpdateable } from "../updater/index.js";
 import { PayloadBuilder } from "../payload/index.js";
 import { inspect } from "node:util";
+import { resolveFile } from "../utils/resolve.js";
 
 export class DJSXRenderer {
     key?: string = v4();
@@ -81,11 +82,24 @@ export class DJSXRenderer {
         if (!container.node) return;
         
         try {
-            let builder = new PayloadBuilder(this.prefixCustomId.bind(this));
-            let payload = builder.createMessage(container.node);
-            this.events = builder.eventHandlers;
+            const payload = new PayloadBuilder(this.prefixCustomId.bind(this))
+                .createMessage(container.node);
+            this.events = payload.eventHandlers;
             this.updater.setFlags(payload.flags);
-            this.updater.updateMessageDebounced(payload.options);
+
+            // TODO: don't re-upload files from last message version
+            const files: AttachmentPayload[] = [];
+            for (const [name, attachment] of payload.attachments) {
+                files.push({
+                    name,
+                    attachment: await resolveFile(attachment),
+                });
+            }
+
+            this.updater.updateMessageDebounced({
+                ...payload.options,
+                files
+            });
         } catch (e) {
             this.updater.handleError(e as Error);
         };
