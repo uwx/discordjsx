@@ -1,20 +1,21 @@
-import { ChatInputCommandInteraction, Collection, Interaction, ModalSubmitInteraction } from "discord.js";
-import { DJSXRenderer } from "../renderer/index.js";
-import { ReactNode } from "react";
-import { v4 } from "uuid";
+import { type ChatInputCommandInteraction, Collection, type Interaction, type ModalSubmitInteraction } from "discord.js";
+import { DJSXRenderer, type DJSXRendererOptions } from "../renderer/index.js";
+import type { ReactNode } from "react";
 
 export class DJSXRendererManager {
     renderers: Collection<string, DJSXRenderer> = new Collection();
 
-    constructor() {}
-
     create(
         interaction: ChatInputCommandInteraction | ModalSubmitInteraction,
         node?: ReactNode,
+        key?: string,
+        options?: DJSXRendererOptions,
     ) {
         const renderer = new DJSXRenderer(
             interaction,
             node,
+            key,
+            options,
         );
 
         renderer.emitter.on("inactivity", () => {
@@ -27,12 +28,13 @@ export class DJSXRendererManager {
     }
     
     add(renderer: DJSXRenderer) {
-        if(!renderer.key) renderer.key = v4();
         this.renderers.set(renderer.key, renderer);
-    };
+    }
 
     dispatchInteraction(int: Interaction) {
-        this.renderers.forEach((renderer) => renderer.dispatchInteraction(int));
+        for (const renderer of this.renderers.values()) {
+            renderer.dispatchInteraction(int);
+        }
     }
 
     disable() {
