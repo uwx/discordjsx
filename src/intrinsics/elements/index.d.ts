@@ -1,8 +1,9 @@
-import type { APIMediaGalleryItem, APISelectMenuOption, APIUnfurledMediaItem, ColorResolvable, APIEmbedThumbnail, APIEmbedImage, APIPartialEmoji, GuildMember, User, Snowflake, Channel, ApplicationCommand, Role, TimestampStyles, ApplicationCommandSubCommand, ApplicationCommandSubGroup } from "discord.js";
+import type { APIMediaGalleryItem, APISelectMenuOption, APIUnfurledMediaItem, ColorResolvable, APIEmbedThumbnail, APIEmbedImage, APIPartialEmoji, GuildMember, User, Snowflake, Channel, ApplicationCommand, Role, TimestampStyles, ApplicationCommandSubCommand, ApplicationCommandSubGroup, BufferResolvable } from "discord.js";
 import type { PropsWithChildren } from "react";
 import type { UnfurledMediaResolvable } from "./base.d.ts";
 import type { SelectProps } from "./select.d.ts";
 import type { ButtonProps } from "./button.d.ts";
+import Stream from "node:stream";
 
 export interface DJSXElements {
     // main elements
@@ -47,18 +48,18 @@ export interface DJSXElements {
     thumbnail: {
         description?: string;
         spoiler?: boolean;
-        media?: APIUnfurledMediaItem | UnfurledMediaResolvable;
+        media?: APIUnfurledMediaItem | UnfurledMediaResolvable | BufferResolvable | Stream;
     } & React.JSX.IntrinsicAttributes;
 
     gallery: PropsWithChildren & React.JSX.IntrinsicAttributes;
     'gallery-item': {
-        media: APIUnfurledMediaItem | UnfurledMediaResolvable;
+        media: APIUnfurledMediaItem | UnfurledMediaResolvable | BufferResolvable | Stream;
         description?: string | null;
         spoiler?: boolean;
     } & React.JSX.IntrinsicAttributes;
 
     file: {
-        file: APIUnfurledMediaItem | UnfurledMediaResolvable;
+        file: APIUnfurledMediaItem | UnfurledMediaResolvable | BufferResolvable | Stream;
         spoiler?: boolean;
     } & React.JSX.IntrinsicAttributes;
 
