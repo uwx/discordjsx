@@ -60,7 +60,7 @@ export class DJSXRenderer {
         return this._node;
     }
 
-    private get prefixCustomId {
+    private get prefixCustomId() {
         return `djsx:${this.key || "auto"}`;
     }
 
