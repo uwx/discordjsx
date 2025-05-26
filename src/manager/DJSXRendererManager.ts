@@ -1,12 +1,13 @@
 import { type ChatInputCommandInteraction, Collection, type Interaction, type ModalSubmitInteraction } from "discord.js";
 import { DJSXRenderer, type DJSXRendererOptions } from "../renderer/index.js";
 import type { ReactNode } from "react";
+import type { MessageUpdateable } from "../updater/types.js";
 
 export class DJSXRendererManager {
     renderers: Collection<string, DJSXRenderer> = new Collection();
 
     create(
-        interaction: ChatInputCommandInteraction | ModalSubmitInteraction,
+        interaction: MessageUpdateable,
         node?: ReactNode,
         key?: string,
         options?: DJSXRendererOptions,
