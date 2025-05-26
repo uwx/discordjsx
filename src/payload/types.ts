@@ -2,10 +2,6 @@ import type { APIModalInteractionResponseCallbackData, BaseMessageOptions, Buffe
 import type { DJSXEventHandlerMap } from "../types/events.js";
 import type Stream from "node:stream";
 
-export type PayloadBuilderOptions = {
-    disabled?: boolean;
-};
-
 export type MessagePayloadOutput = {
     suspended?: false;
     options: BaseMessageOptions;

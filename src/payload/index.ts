@@ -1,14 +1,14 @@
-import type { APIAttachment, APIButtonComponent, APIMediaGalleryItem, APIMessageComponent, APIMessageComponentEmoji, APIMessageTopLevelComponent, APIUnfurledMediaItem, AttachmentPayload, BufferResolvable, ButtonInteraction, EmojiResolvable } from "discord.js";
+import type { APIButtonComponent, APIMessage, APIMessageComponent, APIMessageTopLevelComponent, APIModalComponent, APITextInputComponent, APIUnfurledMediaItem, BufferResolvable } from "discord.js";
 import { ApplicationCommand, blockQuote, bold, ButtonStyle, channelMention, chatInputApplicationCommandMention, codeBlock, ComponentType, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, MessageFlags, resolveColor, roleMention, spoiler, strikethrough, subtext, time, underline, userMention } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
-import type { DJSXEventHandler, DJSXEventHandlerMap } from "../types/index.js";
+import type { DJSXEventHandlerMap } from "../types/index.js";
 import type { MessagePayloadOutput, ModalPayloadOutput } from "./types.js";
 import type { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button.js";
-import { UnfurledMediaResolvable } from "../intrinsics/elements/base.js";
 import type { DJSXElements } from "../intrinsics/elements/index.js";
 import type Stream from "node:stream";
 import crypto from "node:crypto";
+import { resolveEmoji } from "../utils/resolve.js";
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -33,22 +33,12 @@ export class PayloadBuilder {
 
     readonly attachments = new Map<string, BufferResolvable | Stream>();
 
-    prefixCustomId: () => string = () => 'djsx:auto:';
-    createCustomId = () => `${this.prefixCustomId()}:${v4()}`;
+    createCustomId = () => `${this.prefixCustomId}:${v4()}`;
 
-    private everythingDisabled?: boolean = false;
-
-    constructor(prefixCustomId?: () => string) {
-        if (prefixCustomId) this.prefixCustomId = prefixCustomId;
-    }
-
-    withCustomIdPrefix(prefixCustomId: () => string) {
-        this.prefixCustomId = prefixCustomId;
-        return this;
-    }
-
-    withEverythingDisabled(everythingDisabled?: boolean) {
-        this.everythingDisabled = everythingDisabled;
+    constructor(
+        private readonly prefixCustomId: string,
+        private readonly fileNameSalt: string,
+    ) {
     }
 
     private getText(node: InternalNode, listType?: 'ol' | 'ul'): string {
@@ -130,7 +120,7 @@ export class PayloadBuilder {
         this.used = true;
         if (node.type !== "message") throw new Error("Element isn't <message>");
 
-        let flags: MessageFlags[] = [];
+        const flags: MessageFlags[] = [];
         if (node.props.v2) flags.push(MessageFlags.IsComponentsV2);
         if (node.props.ephemeral) flags.push(MessageFlags.Ephemeral);
 
@@ -172,8 +162,8 @@ export class PayloadBuilder {
             .filter(x => x !== null);
     }
 
-    private toDiscordComponent(_node: InternalNode): APIMessageComponent | null {
-        let node = _node as IntrinsicNode;
+    private toDiscordComponent(_node: InternalNode): APIMessageComponent | APIModalComponent | null {
+        const node = _node as IntrinsicNode;
 
         switch (node.type) {
             case "row":
@@ -189,7 +179,7 @@ export class PayloadBuilder {
                 return this.toDiscordTextInputComponent(node);
             case "section":
                 const nonAccessory = node.children.filter(x => x.type !== "accessory");
-                const accessoryNode = node.children.find(x => x.type == "accessory")?.children[0];
+                const accessoryNode = node.children.find(x => x.type === "accessory")?.children[0];
 
                 if (!accessoryNode) return null;
                 const accessory = this.toDiscordComponent(accessoryNode);
@@ -263,8 +253,7 @@ export class PayloadBuilder {
     }
 
     protected stringFileName(string: string) {
-        // TODO: this should not use the same prefix as it may make filenames guessable.
-        return crypto.createHash('sha256').update(this.prefixCustomId() + string).digest('base64url');
+        return crypto.createHash('sha256').update(this.fileNameSalt + string).digest('base64url');
     }
 
     resolveAttachment(media: string | APIUnfurledMediaItem | BufferResolvable | Stream): APIUnfurledMediaItem {
@@ -289,7 +278,7 @@ export class PayloadBuilder {
     }
 
     private asAPIMessageTopLevelComponent(node: InternalNode): APIMessageTopLevelComponent {
-        let c = this.toDiscordComponent(node);
+        const c = this.toDiscordComponent(node);
         if(!c) throw new Error();
 
         if(
@@ -300,13 +289,16 @@ export class PayloadBuilder {
             || c.type === ComponentType.ChannelSelect
             || c.type === ComponentType.Button
             || c.type === ComponentType.Thumbnail
-        ) throw new Error();
+            || c.type === ComponentType.TextInput
+        ) {
+            throw new Error();
+        }
 
-        return c;
+        return c as APIMessageTopLevelComponent;
     }
 
     private toDiscordButtonComponent(node: InstrinsicNodesMap["button"]): APIButtonComponent {
-        let style = "skuId" in node.props ? ButtonStyle.Premium : (
+        const style = "skuId" in node.props ? ButtonStyle.Premium : (
             "url" in node.props ? ButtonStyle.Link : ({
                 "primary": ButtonStyle.Primary,
                 "secondary": ButtonStyle.Secondary,
@@ -326,40 +318,7 @@ export class PayloadBuilder {
             sku_id: (node.props as PremiumButtonProps).skuId,
             url: (node.props as LinkButtonProps).url,
             disabled: node.props.disabled,
-            emoji: node.props.emoji ? this.resolveEmoji(node.props.emoji) : undefined,
-        };
-    }
-
-    private resolveEmoji(emoji: EmojiResolvable | APIMessageComponentEmoji | string): APIMessageComponentEmoji {
-        if (typeof emoji === 'string') {
-            // Is formatted emoji
-            if (emoji.startsWith('<') && emoji.endsWith('>')) {
-                const emojiRe = /<(a?):([a-zA-Z0-9_]+):(\d+)>/;
-
-                const match = emoji.match(emojiRe);
-                if (match) {
-                    return {
-                        name: match[2],
-                        id: match[3],
-                        animated: match[1] === 'a',
-                    };
-                }
-            }
-
-            // Is snowflake
-            if (Number.isInteger(Number(emoji))) {
-                return { id: emoji };
-            }
-            
-            // Is unicode emoji
-            return { name: emoji };
-        }
-
-        // Is emoji object
-        return {
-            name: emoji.name ?? undefined,
-            id: emoji.id ?? undefined,
-            animated: emoji.animated ?? undefined,
+            emoji: node.props.emoji ? resolveEmoji(node.props.emoji) : undefined,
         };
     }
 
@@ -379,7 +338,7 @@ export class PayloadBuilder {
             custom_id,
             min_values: node.props.min,
             max_values: node.props.max,
-            disabled: this.everythingDisabled ? true : node.props.disabled,
+            disabled: node.props.disabled,
             placeholder: node.props.placeholder,
             ...(node.props.type === "string" ? {
                 options: node.children.map(child => ({
@@ -403,10 +362,10 @@ export class PayloadBuilder {
         };
     }
 
-    private toDiscordTextInputComponent(node: InstrinsicNodesMap["text-input"]) {
+    private toDiscordTextInputComponent(node: InstrinsicNodesMap["text-input"]): APITextInputComponent {
         return {
             type: ComponentType.TextInput,
-            custom_id: node.props.customId,
+            custom_id: node.props.customId || this.createCustomId(),
             style: node.props.paragraph ? 2 : 1,
             label: node.props.label,
             required: node.props.required,

@@ -1,4 +1,4 @@
-import type { Base64Resolvable, BufferResolvable } from 'discord.js';
+import type { APIMessageComponentEmoji, Base64Resolvable, BufferResolvable, EmojiResolvable } from 'discord.js';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import type Stream from 'node:stream';
@@ -26,4 +26,37 @@ export async function resolveFile(resource: BufferResolvable | Stream): Promise<
     }
 
     return resource as Stream;
+}
+
+export function resolveEmoji(emoji: EmojiResolvable | APIMessageComponentEmoji | string): APIMessageComponentEmoji {
+    if (typeof emoji === 'string') {
+        // Is formatted emoji
+        if (emoji.startsWith('<') && emoji.endsWith('>')) {
+            const emojiRe = /<(a?):([a-zA-Z0-9_]+):(\d+)>/;
+
+            const match = emoji.match(emojiRe);
+            if (match) {
+                return {
+                    name: match[2],
+                    id: match[3],
+                    animated: match[1] === 'a',
+                };
+            }
+        }
+
+        // Is snowflake
+        if (Number.isInteger(Number(emoji))) {
+            return { id: emoji };
+        }
+        
+        // Is unicode emoji
+        return { name: emoji };
+    }
+
+    // Is emoji object
+    return {
+        name: emoji.name ?? undefined,
+        id: emoji.id ?? undefined,
+        animated: emoji.animated ?? undefined,
+    };
 }
