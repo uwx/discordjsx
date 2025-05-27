@@ -9,7 +9,7 @@ import type Stream from 'node:stream';
  * @returns
  * @private
  */
-export async function resolveFile(resource: BufferResolvable | Stream): Promise<Buffer | Stream> {
+export async function resolveFile(resource: BufferResolvable | Stream | Blob | File): Promise<Buffer | Stream> {
     if (Buffer.isBuffer(resource)) return resource;
 
     if (typeof resource === 'string') {
@@ -23,6 +23,10 @@ export async function resolveFile(resource: BufferResolvable | Stream): Promise<
         const stats = await stat(file);
         if (!stats.isFile()) throw new Error(`File not found: ${file}}`);
         return await readFile(file);
+    }
+
+    if ('arrayBuffer' in resource) {
+        return Buffer.from(await resource.arrayBuffer());
     }
 
     return resource as Stream;
