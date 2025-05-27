@@ -17,6 +17,7 @@
         "publish-dryrun": "npm run build && npm publish --dry-run"
     },
     "devDependencies": {
+        "@types/mime-types": "^2.1.4",
         "@types/react-reconciler": "^0.31.0",
         "@types/uuid": "^10.0.0",
         "dotenv": "^16.5.0",
@@ -28,6 +29,7 @@
         "react": "^19.1.0"
     },
     "dependencies": {
+        "mime-types": "^3.0.1",
         "nanoevents": "^9.1.0",
         "react-reconciler": "^0.32.0",
         "uuid": "^11.1.0"

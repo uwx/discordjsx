@@ -8,8 +8,8 @@ import { pickMessageFlags, isUpdateableNeedsReply } from "./utils.js";
 import { DJSXRendererOptions } from "../renderer/types.js";
 import { defaultLog } from "src/utils/log.js";
 
-const REPLY_TIMEOUT = INTERACTION_REPLY_EXPIRY - 1000;
-const INTERACTION_TOKEN_TIMEOUT = INTERACTION_TOKEN_EXPIRY - 30 * 1000;
+export const REPLY_TIMEOUT = INTERACTION_REPLY_EXPIRY - 1000;
+export const INTERACTION_TOKEN_TIMEOUT = INTERACTION_TOKEN_EXPIRY - 30 * 1000;
 
 export type InteractionMessageUpdaterEventMap = {
     tokenExpired(): void;
@@ -28,9 +28,9 @@ export class MessageUpdater {
 
     constructor(
         target: MessageUpdateable,
-        private flags: MessageFlags[] = [MessageFlags.IsComponentsV2],
+        private flags: MessageFlags[],
+        private readonly deferAfter: number,
         disableAfter?: number,
-        private readonly deferAfter = REPLY_TIMEOUT,
         private readonly createErrorMessage: (error: Error) => BaseMessageOptions = this.createErrorPayload.bind(this),
         private readonly log: (level: 'message' | 'warn' | 'error' | 'trace', category: string, message: string, ...args: any[]) => void = defaultLog,
     ) {
@@ -55,7 +55,7 @@ export class MessageUpdater {
         }
     }
 
-    private _target: MessageUpdateable;
+    private _target: MessageUpdateable = undefined!;
     set target(target: MessageUpdateable) {
         this._target = target;
 

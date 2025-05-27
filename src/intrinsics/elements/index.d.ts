@@ -3,7 +3,16 @@ import type { PropsWithChildren } from "react";
 import type { UnfurledMediaResolvable } from "./base.d.ts";
 import type { SelectProps } from "./select.d.ts";
 import type { ButtonProps } from "./button.d.ts";
-import Stream from "node:stream";
+import type Stream from "node:stream";
+
+/**
+ * Either an {@link APIUnfurledMediaItem}, or a URL, or a {@link File}, or a {@link Blob}, or a
+ * {@link BufferResolvable} or {@link Stream} with a filename.
+ */
+export type MediaItemResolvable = APIUnfurledMediaItem | UnfurledMediaResolvable | File | Blob | {
+    filename: string;
+    attachment: BufferResolvable | Stream | Blob;
+};
 
 export interface DJSXElements {
     // main elements
@@ -48,18 +57,18 @@ export interface DJSXElements {
     thumbnail: {
         description?: string;
         spoiler?: boolean;
-        media?: APIUnfurledMediaItem | UnfurledMediaResolvable | BufferResolvable | Stream;
+        media?: MediaItemResolvable;
     } & React.JSX.IntrinsicAttributes;
 
     gallery: PropsWithChildren & React.JSX.IntrinsicAttributes;
     'gallery-item': {
-        media: APIUnfurledMediaItem | UnfurledMediaResolvable | BufferResolvable | Stream;
+        media: MediaItemResolvable;
         description?: string | null;
         spoiler?: boolean;
     } & React.JSX.IntrinsicAttributes;
 
     file: {
-        file: APIUnfurledMediaItem | UnfurledMediaResolvable | BufferResolvable | Stream;
+        file: MediaItemResolvable;
         spoiler?: boolean;
     } & React.JSX.IntrinsicAttributes;
 

@@ -5,10 +5,10 @@ import { v4 } from "uuid";
 import type { DJSXEventHandlerMap } from "../types/index.js";
 import type { MessagePayloadOutput, ModalPayloadOutput } from "./types.js";
 import type { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button.js";
-import type { DJSXElements } from "../intrinsics/elements/index.js";
+import type { DJSXElements, MediaItemResolvable } from "../intrinsics/elements/index.js";
 import type Stream from "node:stream";
-import crypto from "node:crypto";
 import { resolveEmoji } from "../utils/resolve.js";
+import mime from 'mime-types';
 
 type InstrinsicNodesMap = {
     [K in keyof React.JSX.IntrinsicElements]: {
@@ -20,7 +20,7 @@ type InstrinsicNodesMap = {
 
 type IntrinsicNode = InstrinsicNodesMap[keyof React.JSX.IntrinsicElements];
 
-const bufferOrStreamNameCache = new WeakMap<Buffer | Stream, string>();
+const bufferOrStreamNameCache = new WeakMap<Buffer | Stream | Blob, string>();
 
 export class PayloadBuilder {
     readonly eventHandlers: DJSXEventHandlerMap = {
@@ -29,7 +29,7 @@ export class PayloadBuilder {
         modalSubmit: new Map(),
     };
 
-    readonly attachments = new Map<string, BufferResolvable | Stream>();
+    readonly attachments = new Map<string, BufferResolvable | Stream | Blob | File>();
 
     createCustomId = () => `${this.prefixCustomId}:${v4()}`;
 
@@ -254,7 +254,7 @@ export class PayloadBuilder {
         }
     }
 
-    protected bufferOrStreamFileName(stream: Buffer | Stream) {
+    protected bufferOrStreamOrBlobFileName(stream: Buffer | Stream | Blob) {
         if (bufferOrStreamNameCache.has(stream)) return bufferOrStreamNameCache.get(stream)!;
 
         const name = v4();
@@ -262,29 +262,34 @@ export class PayloadBuilder {
         return name;
     }
 
-    protected stringFileName(string: string) {
-        return crypto.createHash('sha256').update(this.fileNameSalt + string).digest('base64url');
-    }
-
-    resolveAttachment(media: string | APIUnfurledMediaItem | BufferResolvable | Stream): APIUnfurledMediaItem {
+    resolveAttachment(media: MediaItemResolvable): APIUnfurledMediaItem {
         if (typeof media === 'string') {
-            if (/^https?:\/\//.test(media)) {
-                return { url: media };
-            }
-
-            const name = this.stringFileName(media);
-            this.attachments.set(name, media);
-
-            return { url: `attachment://${name}` };
+            return { url: media };
         }
 
         if ('url' in media) {
             return media;
         }
-        
-        const name = this.bufferOrStreamFileName(media);
-        this.attachments.set(name, media);
-        return { url: `attachment://${name}` };
+
+        if ('arrayBuffer' in media) {
+            if ('name' in media) { // File
+                this.attachments.set(media.name, media);
+                return {
+                    url: `attachment://${media.name}`
+                };
+            }
+
+            if ('type' in media) { // Blob
+                const name = `${this.bufferOrStreamOrBlobFileName(media)}.${mime.extension(media.type)}`;
+                this.attachments.set(name, media);
+                return {
+                    url: `attachment://${name}`
+                };
+            }
+        }
+    
+        this.attachments.set(media.filename, media.attachment);
+        return { url: `attachment://${media.filename}` };
     }
 
     private asAPIMessageTopLevelComponent(node: InternalNode): APIMessageTopLevelComponent {

@@ -6,7 +6,7 @@ export type MessagePayloadOutput = {
     options: BaseMessageOptions;
     flags: MessageFlags[];
     eventHandlers: DJSXEventHandlerMap;
-    attachments: Map<string, BufferResolvable | Stream>;
+    attachments: Map<string, BufferResolvable | Stream | Blob | File>;
 };
 
 export type ModalPayloadOutput = {
