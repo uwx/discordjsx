@@ -1,4 +1,4 @@
-export function defaultLog(level: 'message' | 'warn' | 'error', category: string, message: string, ...args: any[]) {
+export function defaultLog(level: 'message' | 'warn' | 'error' | 'trace', category: string, message: string, ...args: any[]) {
     switch (level) {
         case 'message':
             console.log(`[${category}] ${message}`, ...args);

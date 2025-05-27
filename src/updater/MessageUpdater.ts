@@ -32,17 +32,20 @@ export class MessageUpdater {
         disableAfter?: number,
         private readonly deferAfter = REPLY_TIMEOUT,
         private readonly createErrorMessage: (error: Error) => BaseMessageOptions = this.createErrorPayload.bind(this),
-        private readonly log: (level: 'message' | 'warn' | 'error', category: string, message: string, ...args: any[]) => void = defaultLog,
+        private readonly log: (level: 'message' | 'warn' | 'error' | 'trace', category: string, message: string, ...args: any[]) => void = defaultLog,
     ) {
         this.target = target;
 
         if (deferAfter && target instanceof BaseInteraction && target.isRepliable()) {
             setTimeout(async () => {
                 if (!target.replied && !target.deferred) {
+                    this.log('trace', 'jsx/updater', `Deferring reply to interaction ${target.id} due to no initial reply in time`);
                     await target.deferReply({
                         // HACK: type assertion until discord.js typings are updated to include MessageFlags.IsComponentsV2
                         flags: pickMessageFlags(this.flags, [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]) as [MessageFlags.Ephemeral]
                     });
+                } else {
+                    this.log('trace', 'jsx/updater', `Not deferring reply to interaction ${target.id} because it's already replied or deferred`);
                 }
             }, REPLY_TIMEOUT);
         }
@@ -60,6 +63,7 @@ export class MessageUpdater {
 
         if (this.deferAfter && isUpdateableNeedsReply(target)) {
             setTimeout(async () => {
+                this.log('trace', 'jsx/updater', `Deferring update to component interaction ${target.id}`);
                 if (!target.replied && !target.deferred) {
                     await target.deferUpdate();
                 }
@@ -156,6 +160,7 @@ export class MessageUpdater {
 
         if (this.target instanceof BaseInteraction) {
             if (this.target.replied || this.target.deferred) {
+                this.log('trace', 'jsx/updater', `Editing reply to interaction ${this.target.id}`, this.payload);
                 await this.target.editReply({
                     ...this.payload,
                     flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
@@ -165,6 +170,7 @@ export class MessageUpdater {
                     this.target.isChatInputCommand()
                     || (this.target.isModalSubmit() && !this.target.isFromMessage())
                 ) {
+                    this.log('trace', 'jsx/updater', `Replying to command or modal interaction ${this.target.id}`, this.payload);
                     await this.target.reply({
                         ...this.payload,
                         flags: pickMessageFlags(this.flags, [
@@ -178,6 +184,7 @@ export class MessageUpdater {
                     this.target.isMessageComponent()
                     || (this.target.isModalSubmit() && this.target.isFromMessage())
                 ) {
+                    this.log('trace', 'jsx/updater', `Replying to component interaction ${this.target.id}`, this.payload);
                     await this.target.update({
                         ...this.payload,
                         flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
@@ -185,11 +192,13 @@ export class MessageUpdater {
                 }
             }
         } else if (this.target instanceof Message) {
+            this.log('trace', 'jsx/updater', `Updating message ${this.target.id}`, this.payload);
             await this.target.edit({
                 ...this.payload,
                 flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
             });
-        } else if (this.target instanceof BaseChannel || this.target instanceof User) {
+        } else if (this.target instanceof BaseChannel) {
+            this.log('trace', 'jsx/updater', `Messaging in channel ${this.target.id}`, this.payload);
             this.target = await this.target.send({
                 ...this.payload,
                 flags: pickMessageFlags(this.flags, [
@@ -199,6 +208,7 @@ export class MessageUpdater {
                 ]),
             });
         } else if (this.target instanceof User) {
+            this.log('trace', 'jsx/updater', `DMing user ${this.target.id}`, this.payload);
             this.target = await (await this.target.createDM()).send({
                 ...this.payload,
                 flags: pickMessageFlags(this.flags, [

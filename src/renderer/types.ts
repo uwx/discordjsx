@@ -24,7 +24,7 @@ export type DJSXRendererOptions = {
 
     createErrorMessage?: (error: Error) => BaseMessageOptions;
 
-    log?: (level: 'message' | 'warn' | 'error', category: string, message: string, ...args: any[]) => void;
+    log?: (level: 'message' | 'warn' | 'error' | 'trace', category: string, message: string, ...args: any[]) => void;
     
     /**
      * Whether to respond to interaction events tied to components in the message.
