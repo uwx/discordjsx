@@ -288,8 +288,8 @@ export class PayloadBuilder {
             }
         }
     
-        this.attachments.set(media.filename, media.attachment);
-        return { url: `attachment://${media.filename}` };
+        this.attachments.set(media.name, media.attachment);
+        return { url: `attachment://${media.name}` };
     }
 
     private asAPIMessageTopLevelComponent(node: InternalNode): APIMessageTopLevelComponent {

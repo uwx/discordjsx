@@ -10,7 +10,7 @@ import type Stream from "node:stream";
  * {@link BufferResolvable} or {@link Stream} with a filename.
  */
 export type MediaItemResolvable = APIUnfurledMediaItem | UnfurledMediaResolvable | File | Blob | {
-    filename: string;
+    name: string;
     attachment: BufferResolvable | Stream | Blob;
 };
 
