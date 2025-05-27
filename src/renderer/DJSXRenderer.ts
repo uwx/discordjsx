@@ -1,4 +1,4 @@
-import { AttachmentPayload, Interaction, MessageFlags, SelectMenuInteraction } from "discord.js";
+import { type AttachmentPayload, type Interaction, MessageFlags, type SelectMenuInteraction } from "discord.js";
 import { v4 } from "uuid";
 import { createNanoEvents } from "nanoevents";
 import type { DJSXRendererEventMap, DJSXRendererOptions } from "./types.js";
@@ -120,7 +120,7 @@ export class DJSXRenderer {
         this.log('trace', 'jsx/renderer', 'Rendering node', container.node);
         
         try {
-            const payload = PayloadBuilder.createMessage(this.prefixCustomId, this.fileNameSalt, this.defaultFlags, container.node)
+            const payload = PayloadBuilder.createMessage(this.prefixCustomId, this.defaultFlags, container.node)
             this.events = payload.eventHandlers;
 
             // TODO: don't re-upload files from last message version
