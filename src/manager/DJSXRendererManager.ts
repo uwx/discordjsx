@@ -1,4 +1,4 @@
-import { type ChatInputCommandInteraction, Collection, type Interaction, type ModalSubmitInteraction } from "discord.js";
+import { Collection, type Interaction } from "discord.js";
 import { DJSXRenderer, type DJSXRendererOptions } from "../renderer/index.js";
 import type { ReactNode } from "react";
 import type { MessageUpdateable } from "../updater/types.js";
@@ -9,21 +9,21 @@ export class DJSXRendererManager {
     create(
         interaction: MessageUpdateable,
         node?: ReactNode,
-        key?: string,
         options?: DJSXRendererOptions,
     ) {
         const renderer = new DJSXRenderer(
             interaction,
             node,
-            key,
             options,
         );
 
-        renderer.emitter.on("inactivity", () => {
-            this.renderers.delete(renderer.key!);
-        });
+        if (options?.interactible === false) { 
+            renderer.emitter.on("inactivity", () => {
+                this.renderers.delete(renderer.key!);
+            });
 
-        this.add(renderer);
+            this.add(renderer);
+        }
 
         return renderer;
     }
