@@ -126,7 +126,7 @@ export class MessageUpdater {
             "-# `discord-jsx-renderer`: failed to render",
             "### ⚠️ **Error**",
             "",
-            codeBlock(e.toString()),
+            codeBlock(`${e.toString()}\n\n${e.stack}`),
         ].join("\n");
 
         if (this.flags.includes(MessageFlags.IsComponentsV2)) {
