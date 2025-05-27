@@ -2,7 +2,7 @@ import { version } from "react";
 import ReactReconciler from "react-reconciler";
 import { InternalHostConfig } from "./HostConfig.js";
 
-export const reconciler = ReactReconciler(InternalHostConfig);
+export const reconciler = ReactReconciler(InternalHostConfig as any);
 
 // why not -deniz
 reconciler.injectIntoDevTools({

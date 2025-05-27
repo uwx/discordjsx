@@ -20,8 +20,7 @@ export class JSXRenderer {
 
     constructor() {
         this.container = {
-            node: null,
-            onRender: () => this.emitter.emit("render", this.container),
+            onRenderContainer: () => this.emitter.emit("render", this.container)
         };
 
         // WARNING: Typings are outdeated
