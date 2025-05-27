@@ -23,8 +23,6 @@ type IntrinsicNode = InstrinsicNodesMap[keyof React.JSX.IntrinsicElements];
 const bufferOrStreamNameCache = new WeakMap<Buffer | Stream, string>();
 
 export class PayloadBuilder {
-    private used?: boolean = false;
-
     readonly eventHandlers: DJSXEventHandlerMap = {
         button: new Map(),
         select: new Map(),
@@ -35,10 +33,17 @@ export class PayloadBuilder {
 
     createCustomId = () => `${this.prefixCustomId}:${v4()}`;
 
-    constructor(
+    private constructor(
         private readonly prefixCustomId: string,
-        private readonly fileNameSalt: string,
     ) {
+    }
+
+    static createMessage(prefixCustomId: string, defaultFlags: MessageFlags[], node: InternalNode) {
+        return new PayloadBuilder(prefixCustomId).createMessage(node, defaultFlags);
+    }
+
+    static createModal(prefixCustomId: string, node: InternalNode) {
+        return new PayloadBuilder(prefixCustomId).createModal(node);
     }
 
     private getText(node: InternalNode, listType?: 'ol' | 'ul'): string {
@@ -115,11 +120,18 @@ export class PayloadBuilder {
         }
     }
 
-    createMessage(node: InternalNode): MessagePayloadOutput {
-        if(this.used) throw new Error("You cannot re-use PayloadBuilder - please create a new one");
-        this.used = true;
-
-        if (node.type !== "message") throw new Error("Element isn't <message>");
+    createMessage(node: InternalNode, defaultFlags: MessageFlags[]): MessagePayloadOutput {
+        // wrap in <message> if not the top-level component
+        if (node.type !== "message") {
+            node = {
+                type: "message",
+                props: {
+                    ...(defaultFlags.includes(MessageFlags.IsComponentsV2) ? { v2: true } : {}),
+                    ...(defaultFlags.includes(MessageFlags.Ephemeral) ? { ephemeral: true } : {}),
+                },
+                children: [node],
+            }
+        }
 
         const flags: MessageFlags[] = [];
         if (node.props.v2) flags.push(MessageFlags.IsComponentsV2);
@@ -139,9 +151,6 @@ export class PayloadBuilder {
     }
 
     createModal(node: InternalNode): ModalPayloadOutput {
-        if(this.used) throw new Error("You cannot re-use PayloadBuilder - please create a new one");
-        this.used = true;
-
         const custom_id = (node.props as DJSXElements['modal']).customId || this.createCustomId();
         const components = this.toDiscordComponentsArray(node.children);
 

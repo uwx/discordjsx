@@ -8,6 +8,13 @@ export type DJSXRendererEventMap = {
 
 export type DJSXRendererOptions = {
     /**
+     * Renderer key used to uniquely identify this renderer, and used as a prefix for its components' custom IDs
+     * 
+     * Default: Random UUIDv4
+     */
+    key?: string,
+
+    /**
      * The amount of time (in milliseconds) to wait before deferring a reply to either a component interaction on the
      * rendered message, or the initial interaction if passing an {@link BaseInteraction} to {@link DJSXRenderer}.
      * 
@@ -34,10 +41,9 @@ export type DJSXRendererOptions = {
     interactible?: boolean;
 
     /**
-     * Message flags to respond with if the component doesn't render a <message> element in time to respond to the
-     * interaction.
+     * Message flags to respond with if the component doesn't have a top-level <message> component.
      * 
-     * Default: `MessageFlags.IsComponentsV2`
+     * Default: `[MessageFlags.IsComponentsV2]`
      */
-    deferFlags?: (MessageFlags.Ephemeral | MessageFlags.IsComponentsV2)[];
+    defaultFlags?: (MessageFlags.Ephemeral | MessageFlags.IsComponentsV2)[];
 };

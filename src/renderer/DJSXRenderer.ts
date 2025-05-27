@@ -1,10 +1,10 @@
-import type { AttachmentPayload, Interaction, SelectMenuInteraction } from "discord.js";
+import { AttachmentPayload, Interaction, MessageFlags, SelectMenuInteraction } from "discord.js";
 import { v4 } from "uuid";
 import { createNanoEvents } from "nanoevents";
 import type { DJSXRendererEventMap, DJSXRendererOptions } from "./types.js";
 import { type HostContainer, JSXRenderer } from "../reconciler/index.js";
 import type { DJSXEventHandlerMap } from "../types/index.js";
-import { MessageUpdater, type MessageUpdateable } from "../updater/index.js";
+import { MessageUpdater, REPLY_TIMEOUT, type MessageUpdateable } from "../updater/index.js";
 import { PayloadBuilder } from "../payload/index.js";
 import { resolveFile } from "../utils/resolve.js";
 import { defaultLog } from "src/utils/log.js";
@@ -26,14 +26,29 @@ export class DJSXRenderer {
     /** Unique per renderer. Used to prevent filenames from being guessable. */
     private readonly fileNameSalt = v4();
 
+    readonly key: string;
+    private readonly log: (level: "message" | "warn" | "error" | "trace", category: string, message: string, ...args: any[]) => void;
+    private readonly defaultFlags: MessageFlags[];
+
     constructor(
         interaction: MessageUpdateable,
         node?: React.ReactNode,
-        readonly key = v4(),
-        { interactible = true, deferFlags, deferAfter, disableAfter, createErrorMessage, log = defaultLog }: DJSXRendererOptions = {},
+        {
+            key = v4(),
+            interactible = true,
+            defaultFlags = [MessageFlags.IsComponentsV2],
+            deferAfter = REPLY_TIMEOUT,
+            disableAfter,
+            createErrorMessage,
+            log = defaultLog
+        }: DJSXRendererOptions = {},
     ) {
-        this.updater = new MessageUpdater(interaction, deferFlags, deferAfter, disableAfter, createErrorMessage, log);
+        this.updater = new MessageUpdater(interaction, defaultFlags, deferAfter, disableAfter, createErrorMessage, log);
+
+        this.key = key;
         this.node = node;
+        this.log = log;
+        this.defaultFlags = defaultFlags;
         
         this.interactible = interactible;
 
@@ -68,7 +83,9 @@ export class DJSXRenderer {
         if (this.key
             && "customId" in interaction
             && !interaction.customId.startsWith(this.prefixCustomId)
-        ) return;
+        ) {
+            return;
+        }
 
         if (!this.interactible) {
             return;
@@ -103,8 +120,7 @@ export class DJSXRenderer {
         this.log('trace', 'jsx/renderer', 'Rendering node', container.node);
         
         try {
-            const payload = new PayloadBuilder(this.prefixCustomId, this.fileNameSalt)
-                .createMessage(container.node);
+            const payload = PayloadBuilder.createMessage(this.prefixCustomId, this.fileNameSalt, this.defaultFlags, container.node)
             this.events = payload.eventHandlers;
 
             // TODO: don't re-upload files from last message version
