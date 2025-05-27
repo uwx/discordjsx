@@ -48,7 +48,7 @@ export class PayloadBuilder {
 
     private getText(node: InternalNode, listType?: 'ol' | 'ul'): string {
         const getChildText = () => {
-            return node.children.map(e => this.getText(e)).join("");
+            return node.children?.map(e => this.getText(e)).join("") ?? "";
         }
 
         switch (node.type) {
