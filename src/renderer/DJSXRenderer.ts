@@ -99,6 +99,8 @@ export class DJSXRenderer {
 
     private async onRender(container: HostContainer) {
         if (!container.node) return;
+
+        this.log('trace', 'jsx/renderer', 'Rendering node', container.node);
         
         try {
             const payload = new PayloadBuilder(this.prefixCustomId, this.fileNameSalt)
