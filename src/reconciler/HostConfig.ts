@@ -30,7 +30,7 @@ SOFTWARE.
 
  */
 
-const LOGGING_ENABLED = false;
+const LOGGING_ENABLED = !!process.env.DISCORDJSX_HOST_CONFIG_LOGGING;
 
 export type HostConfigProps = {
     Type: InternalNode['type'];
