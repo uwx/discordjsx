@@ -6,7 +6,8 @@ import { createNanoEvents, type Unsubscribe } from "nanoevents";
 import { INTERACTION_TOKEN_EXPIRY, type MessageUpdateable, INTERACTION_REPLY_EXPIRY } from "./types.js";
 import { pickMessageFlags, isUpdateableNeedsReply } from "./utils.js";
 import { DJSXRendererOptions } from "../renderer/types.js";
-import { defaultLog } from "src/utils/log.js";
+import { defaultLog } from "../utils/log.js";
+import Mutex from "../utils/mutex.js";
 
 export const REPLY_TIMEOUT = INTERACTION_REPLY_EXPIRY - 1000;
 export const INTERACTION_TOKEN_TIMEOUT = INTERACTION_TOKEN_EXPIRY - 30 * 1000;
@@ -38,14 +39,24 @@ export class MessageUpdater {
 
         if (deferAfter && target instanceof BaseInteraction && target.isRepliable()) {
             setTimeout(async () => {
-                if (!target.replied && !target.deferred) {
-                    this.log('trace', 'jsx/updater', `Deferring reply to interaction ${target.id} due to no initial reply in time`);
-                    await target.deferReply({
-                        // HACK: type assertion until discord.js typings are updated to include MessageFlags.IsComponentsV2
-                        flags: pickMessageFlags(this.flags, [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]) as [MessageFlags.Ephemeral]
+                // there's a race condition here because interaction.deferred will only be set after the request commpletes
+                // so if a message tries to send after this call starts but before it completes, it will silently fail
+                // because of this, we use a mutex.
+                
+                try {
+                    await this.updateTargetMutex.runInMutex(async () => {
+                        if (!target.replied && !target.deferred) {
+                            this.log('trace', 'jsx/updater', `Deferring reply to interaction ${target.id} due to no initial reply in time`);
+                            await target.deferReply({
+                                // HACK: type assertion until discord.js typings are updated to include MessageFlags.IsComponentsV2
+                                flags: pickMessageFlags(this.flags, [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]) as [MessageFlags.Ephemeral]
+                            });
+                        } else {
+                            this.log('trace', 'jsx/updater', `Not deferring reply to interaction ${target.id} because it's already replied or deferred`);
+                        }
                     });
-                } else {
-                    this.log('trace', 'jsx/updater', `Not deferring reply to interaction ${target.id} because it's already replied or deferred`);
+                } catch (err) {
+                    this.log('error', 'jsx/updater', `Failed to defer reply to interaction ${target.id}`, err);
                 }
             }, REPLY_TIMEOUT);
         }
@@ -63,9 +74,16 @@ export class MessageUpdater {
 
         if (this.deferAfter && isUpdateableNeedsReply(target)) {
             setTimeout(async () => {
-                this.log('trace', 'jsx/updater', `Deferring update to component interaction ${target.id}`);
-                if (!target.replied && !target.deferred) {
-                    await target.deferUpdate();
+                // same race condition as above
+                try {
+                    await this.updateTargetMutex.runInMutex(async () => {
+                        this.log('trace', 'jsx/updater', `Deferring update to component interaction ${target.id}`);
+                        if (!target.replied && !target.deferred) {
+                            await target.deferUpdate();
+                        }
+                    });
+                } catch (err) {
+                    this.log('error', 'jsx/updater', `Failed to defer update to component interaction ${target.id}`, err);
                 }
             }, this.deferAfter);
         }
@@ -83,9 +101,10 @@ export class MessageUpdater {
         this.tokenExpiryTimeout = setTimeout(() => this.onTokenExpired(), INTERACTION_TOKEN_TIMEOUT);
     }
 
+    private readonly updateTargetMutex = new Mutex();
     updateMessage = debounceAsync(async (...args: Parameters<MessageUpdater['_updateMessage']>) => {
         return await this._updateMessage(...args);
-    });
+    }, 300, this.updateTargetMutex);
 
     private async _updateMessage(flags: MessageFlags[], options: BaseMessageOptions) {
         if (this.tokenExpired) {
