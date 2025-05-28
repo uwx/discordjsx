@@ -30,7 +30,7 @@ SOFTWARE.
 
  */
 
-const LOGGING_ENABLED = true;
+const LOGGING_ENABLED = false;
 
 export type HostConfigProps = {
     Type: InternalNode['type'];
