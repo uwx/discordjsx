@@ -5,7 +5,7 @@ import { ConcurrentRoot } from "react-reconciler/constants.js";
 import { reconciler } from "./reconciler.js";
 
 export type JSXRendererEventMap = {
-    render: (container: HostContainer) => void;
+    render: (container: HostContainer, node: InternalNode | null) => void;
     renderError: (e: Error) => void;
     caughtError: (e: Error) => void;
     recoverableError: (e: Error) => void;
@@ -20,7 +20,7 @@ export class JSXRenderer {
 
     constructor() {
         this.container = {
-            onRenderContainer: () => this.emitter.emit("render", this.container)
+            onRenderContainer: (node) => this.emitter.emit("render", this.container, node)
         };
 
         // WARNING: Typings are outdeated
@@ -59,8 +59,8 @@ export class JSXRenderer {
     static renderOnce(node: React.ReactNode) {
         return new Promise<InternalNode | null>((res) => {
             let renderer = new JSXRenderer();
-            renderer.emitter.on("render", (continer) => {
-                res(continer.node);
+            renderer.emitter.on("render", (container, node) => {
+                res(node);
             });
             renderer.setRoot(node);
         });

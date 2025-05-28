@@ -2,7 +2,7 @@ import { type AttachmentPayload, type Interaction, MessageFlags, type SelectMenu
 import { v4 } from "uuid";
 import { createNanoEvents } from "nanoevents";
 import type { DJSXRendererEventMap, DJSXRendererOptions } from "./types.js";
-import { type HostContainer, JSXRenderer } from "../reconciler/index.js";
+import { type HostContainer, type InternalNode, JSXRenderer } from "../reconciler/index.js";
 import type { DJSXEventHandlerMap } from "../types/index.js";
 import { MessageUpdater, REPLY_TIMEOUT, type MessageUpdateable } from "../updater/index.js";
 import { PayloadBuilder } from "../payload/index.js";
@@ -52,7 +52,7 @@ export class DJSXRenderer {
         
         this.interactible = interactible;
 
-        this.renderer.emitter.on("render", container => this.onRender(container));
+        this.renderer.emitter.on("render", (container, node) => this.onRender(node));
         this.renderer.emitter.on("renderError", error => this.updater.handleError(error));
         this.updater.emitter.on("tokenExpired", () => {
             this.node = null;
@@ -114,13 +114,13 @@ export class DJSXRenderer {
         }
     }
 
-    private async onRender(container: HostContainer) {
-        if (!container.node) return;
+    private async onRender(node: InternalNode | null) {
+        if (!node) return;
 
-        this.log('trace', 'jsx/renderer', 'Rendering node', container.node);
+        this.log('trace', 'jsx/renderer', 'Rendering node', node);
         
         try {
-            const payload = PayloadBuilder.createMessage(this.prefixCustomId, this.defaultFlags, container.node)
+            const payload = PayloadBuilder.createMessage(this.prefixCustomId, this.defaultFlags, node)
             this.events = payload.eventHandlers;
 
             // TODO: don't re-upload files from last message version
@@ -132,7 +132,7 @@ export class DJSXRenderer {
                 });
             }
 
-            this.updater.updateMessage(payload.flags, { ...payload.options, files });
+            await this.updater.updateMessage(payload.flags, { ...payload.options, files });
         } catch (e) {
             this.updater.handleError(e as Error);
         };
