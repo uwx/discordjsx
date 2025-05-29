@@ -34,8 +34,8 @@ importers:
         specifier: npm:pure-react-types@^0.1.4
         version: pure-react-types@0.1.4
       '@types/react-reconciler':
-        specifier: ^0.31.0
-        version: 0.31.0(pure-react-types@0.1.4)
+        specifier: ^0.32.0
+        version: 0.32.0(pure-react-types@0.1.4)
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
@@ -43,8 +43,8 @@ importers:
         specifier: ^16.5.0
         version: 16.5.0
       typescript:
-        specifier: 5.2.2
-        version: 5.2.2
+        specifier: 5.8.3
+        version: 5.8.3
 
 packages:
 
@@ -94,8 +94,8 @@ packages:
   '@types/node@22.15.24':
     resolution: {integrity: sha512-w9CZGm9RDjzTh/D+hFwlBJ3ziUaVw7oufKA3vOFSOZlzmW9AkZnfjPb+DLnrV6qtgL/LNmP0/2zBNCFHL3F0ng==}
 
-  '@types/react-reconciler@0.31.0':
-    resolution: {integrity: sha512-wa1KtV3SHKnWeLHfZFg/7nrPSe/Ejdn+qbanNX4V6i9I7C3ECKPfBnC1KM3ef58KFWEohLmTvoTH5XuEIKGX2g==}
+  '@types/react-reconciler@0.32.0':
+    resolution: {integrity: sha512-+WHarFkJevhH1s655qeeSEf/yxFST0dVRsmSqUgxG8mMOKqycgYBv2wVpyubBY7MX8KiX5FQ03rNIwrxfm7Bmw==}
     peerDependencies:
       '@types/react': '*'
 
@@ -166,8 +166,8 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  typescript@5.2.2:
-    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -258,7 +258,7 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/react-reconciler@0.31.0(pure-react-types@0.1.4)':
+  '@types/react-reconciler@0.32.0(pure-react-types@0.1.4)':
     dependencies:
       '@types/react': pure-react-types@0.1.4
 
@@ -324,7 +324,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  typescript@5.2.2: {}
+  typescript@5.8.3: {}
 
   undici-types@6.21.0: {}
 

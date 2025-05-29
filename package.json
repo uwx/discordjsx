@@ -18,11 +18,11 @@
     },
     "devDependencies": {
         "@types/mime-types": "^2.1.4",
-        "@types/react-reconciler": "^0.31.0",
+        "@types/react-reconciler": "^0.32.0",
         "@types/uuid": "^10.0.0",
         "dotenv": "^16.5.0",
         "@types/react": "npm:pure-react-types@^0.1.4",
-        "typescript": "5.2.2"
+        "typescript": "5.8.3"
     },
     "peerDependencies": {
         "discord.js": "^14.19.2",
