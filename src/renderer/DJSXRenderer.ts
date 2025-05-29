@@ -1,10 +1,10 @@
-import { type APIModalInteractionResponseCallbackData, type AttachmentPayload, type Interaction, MessageFlags, type SelectMenuInteraction } from "discord.js";
+import { type APIModalInteractionResponseCallbackData, type AttachmentPayload, ChatInputCommandInteraction, type Interaction, MessageFlags, ModalSubmitInteraction, type SelectMenuInteraction } from "discord.js";
 import { v4 } from "uuid";
-import { createNanoEvents } from "nanoevents";
-import type { DJSXRendererEventMap, DJSXRendererOptions } from "./types.js";
+import { createNanoEvents, Unsubscribe } from "nanoevents";
+import type { DJSXMessageRendererEventMap, DJSXModalRendererEventMap, DJSXRendererOptions } from "./types.js";
 import { type InternalNode, JSXRenderer } from "../reconciler/index.js";
 import type { DJSXEventHandlerMap } from "../types/index.js";
-import { MessageUpdater, REPLY_TIMEOUT, type MessageUpdateable } from "../updater/index.js";
+import { INTERACTION_TOKEN_TIMEOUT, MessageUpdater, REPLY_TIMEOUT, type MessageUpdateable } from "../updater/index.js";
 import { PayloadBuilder } from "../payload/index.js";
 import { resolveFile } from "../utils/resolve.js";
 import { defaultLog } from "src/utils/log.js";
@@ -40,7 +40,6 @@ abstract class DJSXRenderer {
         return `djsx:${this.key || "auto"}`;
     }
 }
-
 export class DJSXModalRenderer extends DJSXRenderer {
     private events: DJSXEventHandlerMap = {
         button: new Map(),
@@ -48,20 +47,35 @@ export class DJSXModalRenderer extends DJSXRenderer {
         modalSubmit: new Map(),
     };
 
-    private _promise: PromiseWithResolvers<APIModalInteractionResponseCallbackData>;
+    private renderPromise: PromiseWithResolvers<APIModalInteractionResponseCallbackData>;
+    private timeout?: NodeJS.Timeout;
+    private emitter = createNanoEvents<DJSXModalRendererEventMap>();
 
     constructor(
+        interaction: ChatInputCommandInteraction,
         node?: React.ReactNode,
-        readonly key = v4(),
+        {
+            key = v4(),
+            timeout = INTERACTION_TOKEN_TIMEOUT,
+        }: {
+            key?: string,
+            timeout?: number,
+        } = {},
     ) {
         super(node, key);
-        this._promise = Promise.withResolvers();
+        this.renderPromise = Promise.withResolvers();
 
-        // TODO detect modal cancellation
-    }
+        this.renderPromise.promise
+            .then(async data => {
+                await interaction.showModal(data);
 
-    get promise(): Promise<APIModalInteractionResponseCallbackData> {
-        return this._promise.promise;
+                this.timeout = setTimeout(() => {
+                    this.emitter.emit('inactivity');
+                }, timeout);
+            })
+            .catch(err => {
+                this.emitter.emit('error', err);
+            });
     }
 
     async dispatchInteraction(interaction: Interaction) {
@@ -79,23 +93,33 @@ export class DJSXModalRenderer extends DJSXRenderer {
                 form[name] = component.value;
             }
             cb?.(form, interaction);
+
+            if (this.timeout) {
+                clearTimeout(this.timeout);
+            }
+
+            this.emitter.emit('modalResponded', interaction, form);
         }
     }
 
     protected async onRender(node: InternalNode | null) {
         if (!node) {
-            this._promise.reject(new Error('Did not produce modal node on initial render'));
+            this.renderPromise.reject(new Error('Did not produce modal node on initial render'));
             return;
         }
 
         const payload = PayloadBuilder.createModal(this.prefixCustomId, node);
         this.events = payload.eventHandlers;
 
-        this._promise.resolve(payload.body);
+        this.renderPromise.resolve(payload.body);
     }
 
     protected async onError(error: Error) {
-        this._promise.reject(new Error('Modal failed to render', { cause: error }));
+        this.renderPromise.reject(new Error('Modal failed to render', { cause: error })); 
+    }
+    
+    on<K extends keyof DJSXModalRendererEventMap>(event: K, cb: DJSXModalRendererEventMap[K]): Unsubscribe {
+        return this.emitter.on(event, cb);
     }
 }
 
@@ -106,14 +130,11 @@ export class DJSXMessageRenderer extends DJSXRenderer {
         modalSubmit: new Map(),
     };
 
-    emitter = createNanoEvents<DJSXRendererEventMap>();
+    emitter = createNanoEvents<DJSXMessageRendererEventMap>();
 
     updater: MessageUpdater;
 
     interactible: boolean;
-
-    /** Unique per renderer. Used to prevent filenames from being guessable. */
-    private readonly fileNameSalt = v4();
 
     private readonly log: (level: "message" | "warn" | "error" | "trace", category: string, message: string, ...args: any[]) => void;
     private readonly defaultFlags: MessageFlags[];
@@ -203,6 +224,10 @@ export class DJSXMessageRenderer extends DJSXRenderer {
         } catch (e) {
             this.updater.handleError(e as Error);
         };
+    }
+
+    on<K extends keyof DJSXMessageRendererEventMap>(event: K, cb: DJSXMessageRendererEventMap[K]): Unsubscribe {
+        return this.emitter.on(event, cb);
     }
 
     async disable() {

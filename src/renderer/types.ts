@@ -1,10 +1,16 @@
-import type { BaseMessageOptions, BaseInteraction, BitFieldResolvable, MessageFlags } from "discord.js";
+import type { BaseMessageOptions, BaseInteraction, BitFieldResolvable, MessageFlags, ModalSubmitInteraction } from "discord.js";
 import type { DJSXMessageRenderer } from "./DJSXRenderer.js";
 
-export type DJSXRendererEventMap = {
-    inactivity: () => void;
-    updatedMessage: (using: "reply" | "interaction" | "component") => void;
-};
+export interface DJSXMessageRendererEventMap {
+    inactivity(): void;
+    updatedMessage(using: "reply" | "interaction" | "component"): void;
+}
+
+export interface DJSXModalRendererEventMap {
+    inactivity(): void;
+    modalResponded(interaction: ModalSubmitInteraction, form: Record<string, string>): void;
+    error(error: Error): void;
+}
 
 export type DJSXRendererOptions = {
     /**

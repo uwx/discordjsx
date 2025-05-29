@@ -1,4 +1,4 @@
-import { Collection, type Interaction } from "discord.js";
+import { ChatInputCommandInteraction, Collection, ModalSubmitInteraction, type Interaction } from "discord.js";
 import { DJSXMessageRenderer, DJSXModalRenderer, type DJSXRendererOptions } from "../renderer/index.js";
 import type { ReactNode } from "react";
 import type { MessageUpdateable } from "../updater/types.js";
@@ -17,9 +17,9 @@ export class DJSXRendererManager {
             options,
         );
 
-        if (options?.interactible === false) { 
+        if (options?.interactible !== false) { 
             renderer.emitter.on("inactivity", () => {
-                this.renderers.delete(renderer.key!);
+                this.remove(renderer);
             });
 
             this.add(renderer);
@@ -28,16 +28,32 @@ export class DJSXRendererManager {
         return renderer;
     }
 
-    async createModal(node?: ReactNode) {
-        const renderer = new DJSXModalRenderer(node);
+    async createModal(interaction: ChatInputCommandInteraction, node?: ReactNode) {
+        const renderer = new DJSXModalRenderer(interaction, node);
 
         this.add(renderer);
 
-        return await renderer.promise;
+        const promise = Promise.withResolvers<{
+            form: Record<string, string>,
+            interaction: ModalSubmitInteraction,
+        } | { timedOut: true }>();
+        
+        renderer.on('error', err => promise.reject(err));
+        renderer.on('modalResponded', (interaction, form) => promise.resolve({ form, interaction }));
+        renderer.on('inactivity', () => {
+            this.remove(renderer);
+            promise.resolve({ timedOut: true });
+        });
+
+        return await promise.promise;
     }
     
     add(renderer: DJSXMessageRenderer | DJSXModalRenderer) {
         this.renderers.set(renderer.key, renderer);
+    }
+
+    remove(renderer: DJSXMessageRenderer | DJSXModalRenderer) {
+        this.renderers.delete(renderer.key);
     }
 
     dispatchInteraction(int: Interaction) {
