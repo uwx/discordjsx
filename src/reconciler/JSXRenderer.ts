@@ -23,7 +23,7 @@ export class JSXRenderer {
             onRenderContainer: (node) => this.emitter.emit("render", this.container, node)
         };
 
-        // WARNING: Typings are outdeated
+        // WARNING: Typings are outdated
         this.fiberRoot = (reconciler.createContainer as any)(
             // containerInfo: Container
             this.container,
