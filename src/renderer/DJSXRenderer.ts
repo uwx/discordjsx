@@ -2,7 +2,7 @@ import { type AttachmentPayload, type Interaction, MessageFlags, type SelectMenu
 import { v4 } from "uuid";
 import { createNanoEvents } from "nanoevents";
 import type { DJSXRendererEventMap, DJSXRendererOptions } from "./types.js";
-import { type HostContainer, type InternalNode, JSXRenderer } from "../reconciler/index.js";
+import { type InternalNode, JSXRenderer } from "../reconciler/index.js";
 import type { DJSXEventHandlerMap } from "../types/index.js";
 import { MessageUpdater, REPLY_TIMEOUT, type MessageUpdateable } from "../updater/index.js";
 import { PayloadBuilder } from "../payload/index.js";

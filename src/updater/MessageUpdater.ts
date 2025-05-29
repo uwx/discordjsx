@@ -1,11 +1,9 @@
 import { BaseChannel, BaseInteraction, type BaseMessageOptions, blockQuote, codeBlock, ComponentType, DiscordAPIError, Message, MessageFlags, resolveColor, User } from "discord.js";
 import { debounceAsync } from "../utils/debounceAsync.js";
 import { markComponentsDisabled } from "../utils/markComponentsDisabled.js";
-import { inspect } from "node:util";
 import { createNanoEvents, type Unsubscribe } from "nanoevents";
 import { INTERACTION_TOKEN_EXPIRY, type MessageUpdateable, INTERACTION_REPLY_EXPIRY } from "./types.js";
 import { pickMessageFlags, isUpdateableNeedsReply } from "./utils.js";
-import { DJSXRendererOptions } from "../renderer/types.js";
 import { defaultLog } from "../utils/log.js";
 import Mutex from "../utils/mutex.js";
 
