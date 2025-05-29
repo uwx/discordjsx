@@ -1,5 +1,5 @@
-import { OpaqueRoot } from "react-reconciler";
-import { HostContainer, InternalNode } from "./types.js";
+import type { OpaqueRoot } from "react-reconciler";
+import type { HostContainer, InternalNode } from "./types.js";
 import { createNanoEvents } from "nanoevents";
 import { ConcurrentRoot } from "react-reconciler/constants.js";
 import { reconciler } from "./reconciler.js";
