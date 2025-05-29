@@ -1,17 +1,17 @@
 import { Collection, type Interaction } from "discord.js";
-import { DJSXRenderer, type DJSXRendererOptions } from "../renderer/index.js";
+import { DJSXMessageRenderer, DJSXModalRenderer, type DJSXRendererOptions } from "../renderer/index.js";
 import type { ReactNode } from "react";
 import type { MessageUpdateable } from "../updater/types.js";
 
 export class DJSXRendererManager {
-    renderers: Collection<string, DJSXRenderer> = new Collection();
+    renderers: Collection<string, DJSXMessageRenderer | DJSXModalRenderer> = new Collection();
 
     create(
         interaction: MessageUpdateable,
         node?: ReactNode,
         options?: DJSXRendererOptions,
     ) {
-        const renderer = new DJSXRenderer(
+        const renderer = new DJSXMessageRenderer(
             interaction,
             node,
             options,
@@ -27,8 +27,16 @@ export class DJSXRendererManager {
 
         return renderer;
     }
+
+    async createModal(node?: ReactNode) {
+        const renderer = new DJSXModalRenderer(node);
+
+        this.add(renderer);
+
+        return await renderer.promise;
+    }
     
-    add(renderer: DJSXRenderer) {
+    add(renderer: DJSXMessageRenderer | DJSXModalRenderer) {
         this.renderers.set(renderer.key, renderer);
     }
 
@@ -39,6 +47,6 @@ export class DJSXRendererManager {
     }
 
     disable() {
-        return Promise.all(this.renderers.map((renderer) => renderer.disable()));
+        return Promise.all(this.renderers.map((renderer) => 'disable' in renderer && renderer.disable()));
     }
 }

@@ -1,5 +1,5 @@
 import type { BaseMessageOptions, BaseInteraction, BitFieldResolvable, MessageFlags } from "discord.js";
-import type { DJSXRenderer } from "./DJSXRenderer.js";
+import type { DJSXMessageRenderer } from "./DJSXRenderer.js";
 
 export type DJSXRendererEventMap = {
     inactivity: () => void;
@@ -16,7 +16,7 @@ export type DJSXRendererOptions = {
 
     /**
      * The amount of time (in milliseconds) to wait before deferring a reply to either a component interaction on the
-     * rendered message, or the initial interaction if passing an {@link BaseInteraction} to {@link DJSXRenderer}.
+     * rendered message, or the initial interaction if passing an {@link BaseInteraction} to {@link DJSXMessageRenderer}.
      * 
      * Default: 2 seconds.
      */
