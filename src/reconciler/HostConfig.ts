@@ -93,7 +93,8 @@ interface HostConfigEx<
             UpdatePayload,
             ChildSet,
             TimeoutHandle,
-            NoTimeout
+            NoTimeout,
+            TransitionStatus
         >,
         'getCurrentEventPriority' | 'prepareUpdate' | 'commitUpdate' | 'cloneInstance'
     > {
