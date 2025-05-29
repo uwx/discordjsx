@@ -95,11 +95,11 @@ export class DJSXRenderer {
             const cb = this.events.button.get(interaction.customId);
             cb?.(interaction);
         } else if ('isAnySelectMenu' in interaction
-            ? (interaction as any).isAnySelectMenu() // discord.js@14
-            : interaction.isSelectMenu() // discord.js@15
+            ? interaction.isAnySelectMenu() // discord.js@14
+            : (interaction as any).isSelectMenu() // discord.js@15
         ) {
             const cb = this.events.select.get((interaction as SelectMenuInteraction).customId);
-            cb?.((interaction as SelectMenuInteraction).values, interaction);
+            cb?.((interaction as SelectMenuInteraction).values, (interaction as SelectMenuInteraction));
         } else if (interaction.isModalSubmit()) {
             const cb = this.events.modalSubmit.get(interaction.customId);
             const form: Record<string, string> = {};
