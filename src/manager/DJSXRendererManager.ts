@@ -36,6 +36,7 @@ export class DJSXRendererManager {
         const promise = Promise.withResolvers<{
             form: Record<string, string>,
             interaction: ModalSubmitInteraction,
+            timedOut?: undefined,
         } | { timedOut: true }>();
         
         renderer.on('error', err => promise.reject(err));
