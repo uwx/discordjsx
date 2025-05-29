@@ -4,6 +4,4 @@ export * from "./payload/index.js";
 export * from "./reconciler/index.js";
 export * from "./renderer/index.js";
 export * from "./updater/index.js";
-export * from "./types/index.js";
-export * from "./utils/debounceAsync.js";
-export * from "./utils/markComponentsDisabled.js";
+export * from "./utils/index.js";
