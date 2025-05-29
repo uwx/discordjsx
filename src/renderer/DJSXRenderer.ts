@@ -1,95 +1,144 @@
-import { Interaction } from "discord.js";
+import { type AttachmentPayload, type Interaction, MessageFlags, type SelectMenuInteraction } from "discord.js";
 import { v4 } from "uuid";
 import { createNanoEvents } from "nanoevents";
-import { DJSXRendererEventMap } from "./types.js";
-import { HostContainer, JSXRenderer } from "../reconciler/index.js";
-import { DJSXEventHandlerMap } from "../types/index.js";
-import { MessageUpdater, MessageUpdateable } from "../updater/index.js";
+import type { DJSXRendererEventMap, DJSXRendererOptions } from "./types.js";
+import { type InternalNode, JSXRenderer } from "../reconciler/index.js";
+import type { DJSXEventHandlerMap } from "../types/index.js";
+import { MessageUpdater, REPLY_TIMEOUT, type MessageUpdateable } from "../updater/index.js";
 import { PayloadBuilder } from "../payload/index.js";
+import { resolveFile } from "../utils/resolve.js";
+import { defaultLog } from "src/utils/log.js";
 
 export class DJSXRenderer {
-    key?: string = v4();
     private renderer = new JSXRenderer();
-    private events: Partial<DJSXEventHandlerMap> | null = null;
+    private events: DJSXEventHandlerMap = {
+        button: new Map(),
+        select: new Map(),
+        modalSubmit: new Map(),
+    };
 
     emitter = createNanoEvents<DJSXRendererEventMap>();
 
     updater: MessageUpdater;
 
+    interactible: boolean;
+
+    /** Unique per renderer. Used to prevent filenames from being guessable. */
+    private readonly fileNameSalt = v4();
+
+    readonly key: string;
+    private readonly log: (level: "message" | "warn" | "error" | "trace", category: string, message: string, ...args: any[]) => void;
+    private readonly defaultFlags: MessageFlags[];
+
     constructor(
         interaction: MessageUpdateable,
         node?: React.ReactNode,
-        key?: string,
+        {
+            key = v4(),
+            interactible = true,
+            defaultFlags = [MessageFlags.IsComponentsV2],
+            deferAfter = REPLY_TIMEOUT,
+            disableAfter,
+            createErrorMessage,
+            log = defaultLog
+        }: DJSXRendererOptions = {},
     ) {
-        this.key = key;
-        this.updater = new MessageUpdater(interaction);
-        this.setNode(node);
+        this.updater = new MessageUpdater(interaction, defaultFlags, deferAfter, disableAfter, createErrorMessage, log);
 
-        this.renderer.emitter.on("render", this.onRender.bind(this));
-        this.renderer.emitter.on("renderError", this.updater.handleError.bind(this.updater));
+        this.key = key;
+        this.node = node;
+        this.log = log;
+        this.defaultFlags = defaultFlags;
+        
+        this.interactible = interactible;
+
+        this.renderer.emitter.on("render", (container, node) => this.onRender(node));
+        this.renderer.emitter.on("renderError", error => this.updater.handleError(error));
         this.updater.emitter.on("tokenExpired", () => {
-            this.setNode(null);
+            this.node = null;
             this.emitter.emit("inactivity");
+        });
+        this.updater.emitter.on('timeout', () => {
+            this.node = null;
+            this.emitter.emit('inactivity');
         });
     }
 
-    private node: React.ReactNode = null;
+    private _node: React.ReactNode = null;
     
-    setNode(node: React.ReactNode) {
-        this.node = node;
+    set node(node: React.ReactNode) {
+        this._node = node;
         this.renderer.setRoot(this.node);
     }
 
-    getNode() {
-        return this.node;
+    get node() {
+        return this._node;
     }
 
-    private prefixCustomId() {
+    private get prefixCustomId() {
         return `djsx:${this.key || "auto"}`;
     }
 
     async dispatchInteraction(interaction: Interaction) {
         if (this.key
             && "customId" in interaction
-            && !interaction.customId.startsWith(this.prefixCustomId())
-        ) return;
+            && !interaction.customId.startsWith(this.prefixCustomId)
+        ) {
+            return;
+        }
+
+        if (!this.interactible) {
+            return;
+        }
 
         if (interaction.isButton()) {
-            let cb = this.events?.button?.get(interaction.customId);
+            const cb = this.events.button.get(interaction.customId);
             cb?.(interaction);
-        } else if (interaction.isAnySelectMenu()) {
-            let cb = this.events?.select?.get(interaction.customId);
-            cb?.(interaction.values, interaction);
+        } else if ('isAnySelectMenu' in interaction
+            ? interaction.isAnySelectMenu() // discord.js@14
+            : (interaction as any).isSelectMenu() // discord.js@15
+        ) {
+            const cb = this.events.select.get((interaction as SelectMenuInteraction).customId);
+            cb?.((interaction as SelectMenuInteraction).values, (interaction as SelectMenuInteraction));
         } else if (interaction.isModalSubmit()) {
-            let cb = this.events?.modalSubmit?.get(interaction.customId);
-            let form: Record<string, string> = {};
-            for (let [name, component] of interaction.fields.fields) {
+            const cb = this.events.modalSubmit.get(interaction.customId);
+            const form: Record<string, string> = {};
+            for (const [name, component] of interaction.fields.fields) {
                 form[name] = component.value;
             }
             cb?.(form, interaction);
         };
 
-        if (
-            interaction.isMessageComponent()
-            || interaction.isModalSubmit()
-        ) this.updater.setTarget(interaction);
+        if (interaction.isMessageComponent() || interaction.isModalSubmit()) {
+            this.updater.target = interaction;
+        }
     }
 
-    private async onRender(container: HostContainer) {
-        if (!container.node) return;
+    private async onRender(node: InternalNode | null) {
+        if (!node) return;
+
+        this.log('trace', 'jsx/renderer', 'Rendering node', node);
         
         try {
-            let builder = new PayloadBuilder(this.prefixCustomId.bind(this));
-            let payload = builder.createMessage(container.node);
-            this.events = builder.eventHandlers;
-            this.updater.setFlags(payload.flags);
-            this.updater.updateMessageDebounced(payload.options);
+            const payload = PayloadBuilder.createMessage(this.prefixCustomId, this.defaultFlags, node)
+            this.events = payload.eventHandlers;
+
+            // TODO: don't re-upload files from last message version
+            const files: AttachmentPayload[] = [];
+            for (const [name, attachment] of payload.attachments) {
+                files.push({
+                    name,
+                    attachment: await resolveFile(attachment),
+                });
+            }
+
+            await this.updater.updateMessage(payload.flags, { ...payload.options, files });
         } catch (e) {
             this.updater.handleError(e as Error);
         };
     }
 
-    disable() {
-        return this.updater.disable();
+    async disable() {
+        return await this.updater.disable();
     }
 }

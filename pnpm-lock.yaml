@@ -10,7 +10,10 @@ importers:
     dependencies:
       discord.js:
         specifier: ^14.19.2
-        version: 14.19.2
+        version: 14.19.3
+      mime-types:
+        specifier: ^3.0.1
+        version: 3.0.1
       nanoevents:
         specifier: ^9.1.0
         version: 9.1.0
@@ -24,26 +27,29 @@ importers:
         specifier: ^11.1.0
         version: 11.1.0
     devDependencies:
+      '@types/mime-types':
+        specifier: ^2.1.4
+        version: 2.1.4
+      '@types/react':
+        specifier: npm:pure-react-types@^0.1.4
+        version: pure-react-types@0.1.4
       '@types/react-reconciler':
-        specifier: ^0.31.0
-        version: 0.31.0(@types/react@19.1.2)
+        specifier: ^0.32.0
+        version: 0.32.0(pure-react-types@0.1.4)
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
       dotenv:
         specifier: ^16.5.0
         version: 16.5.0
-      pure-react-types:
-        specifier: ^0.1.4
-        version: 0.1.4
       typescript:
-        specifier: 5.2.2
-        version: 5.2.2
+        specifier: 5.8.3
+        version: 5.8.3
 
 packages:
 
-  '@discordjs/builders@1.11.1':
-    resolution: {integrity: sha512-2zDAVuoeAkdv0YQzYKO8vZfaDfB+1KZ60ymBKtD7QDpsh6lzAnQSUBLqeRkhlons6BT9+yRctOh9fPy94w6kDA==}
+  '@discordjs/builders@1.11.2':
+    resolution: {integrity: sha512-F1WTABdd8/R9D1icJzajC4IuLyyS8f3rTOz66JsSI3pKvpCAtsMBweu8cyNYsIyvcrKAVn9EPK+Psoymq+XC0A==}
     engines: {node: '>=16.11.0'}
 
   '@discordjs/collection@1.5.3':
@@ -82,16 +88,16 @@ packages:
     resolution: {integrity: sha512-jjmJywLAFoWeBi1W7994zZyiNWPIiqRRNAmSERxyg93xRGzNYvGjlZ0gR6x0F4gPRi2+0O6S71kOZYyr3cxaIQ==}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
 
-  '@types/node@22.15.3':
-    resolution: {integrity: sha512-lX7HFZeHf4QG/J7tBZqrCAXwz9J5RD56Y6MpP0eJkka8p+K0RY/yBTW7CYFJ4VGCclxqOLKmiGP5juQc6MKgcw==}
+  '@types/mime-types@2.1.4':
+    resolution: {integrity: sha512-lfU4b34HOri+kAY5UheuFMWPDOI+OPceBSHZKp69gEyTL/mmJ4cnU6Y/rlme3UL3GyOn6Y42hyIEw0/q8sWx5w==}
 
-  '@types/react-reconciler@0.31.0':
-    resolution: {integrity: sha512-wa1KtV3SHKnWeLHfZFg/7nrPSe/Ejdn+qbanNX4V6i9I7C3ECKPfBnC1KM3ef58KFWEohLmTvoTH5XuEIKGX2g==}
+  '@types/node@22.15.24':
+    resolution: {integrity: sha512-w9CZGm9RDjzTh/D+hFwlBJ3ziUaVw7oufKA3vOFSOZlzmW9AkZnfjPb+DLnrV6qtgL/LNmP0/2zBNCFHL3F0ng==}
+
+  '@types/react-reconciler@0.32.0':
+    resolution: {integrity: sha512-+WHarFkJevhH1s655qeeSEf/yxFST0dVRsmSqUgxG8mMOKqycgYBv2wVpyubBY7MX8KiX5FQ03rNIwrxfm7Bmw==}
     peerDependencies:
       '@types/react': '*'
-
-  '@types/react@19.1.2':
-    resolution: {integrity: sha512-oxLPMytKchWGbnQM9O7D67uPa9paTNxO7jVoNMXgkkErULBPhPARCfkKL9ytcIJJRGjbsVwW4ugJzyFFvm/Tiw==}
 
   '@types/uuid@10.0.0':
     resolution: {integrity: sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==}
@@ -103,14 +109,11 @@ packages:
     resolution: {integrity: sha512-RaI5qZo6D2CVS6sTHFKg1v5Ohq/+Bo2LZ5gzUEwZ/WkHhwtGTCB/sVLw8ijOkAUxasZ+WshN/Rzj4ywsABJ5ZA==}
     engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
 
-  csstype@3.1.3:
-    resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
+  discord-api-types@0.38.8:
+    resolution: {integrity: sha512-xuRXPD44FcbKHrQK15FS1HFlMRNJtsaZou/SVws18vQ7zHqmlxyDktMkZpyvD6gE2ctGOVYC/jUyoMMAyBWfcw==}
 
-  discord-api-types@0.38.2:
-    resolution: {integrity: sha512-GAPY1/Kv3aqEoBYgUYXB2tHdWJCZXfytlCzxZ4QMQ1/TIQn1JI+xUOukehl4iEa9m7fCURnMIOpOxpaTWqzX2w==}
-
-  discord.js@14.19.2:
-    resolution: {integrity: sha512-L/ivhVefzzRcChHJSaGYsgA4Uqx6or2sst5JZ/ft9OBwrj8OJIzrrcutlkHnm/hlI0Hrm3es62TRVksU8VUqrg==}
+  discord.js@14.19.3:
+    resolution: {integrity: sha512-lncTRk0k+8Q5D3nThnODBR8fR8x2fM798o8Vsr40Krx0DjPwpZCuxxTcFMrXMQVOqM1QB9wqWgaXPg3TbmlHqA==}
     engines: {node: '>=18'}
 
   dotenv@16.5.0:
@@ -128,6 +131,14 @@ packages:
 
   magic-bytes.js@1.12.1:
     resolution: {integrity: sha512-ThQLOhN86ZkJ7qemtVRGYM+gRgR8GEXNli9H/PMvpnZsE44Xfh3wx9kGJaldg314v85m+bFW6WBMaVHJc/c3zA==}
+
+  mime-db@1.54.0:
+    resolution: {integrity: sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==}
+    engines: {node: '>= 0.6'}
+
+  mime-types@3.0.1:
+    resolution: {integrity: sha512-xRc4oEhT6eaBpU1XF7AjpOFD+xQmXNB5OVKwp4tqCuBpHLS/ZbBDrc07mYTDqVMg6PfxUjjNp85O6Cd2Z/5HWA==}
+    engines: {node: '>= 0.6'}
 
   nanoevents@9.1.0:
     resolution: {integrity: sha512-Jd0fILWG44a9luj8v5kED4WI+zfkkgwKyRQKItTtlPfEsh7Lznfi1kr8/iZ+XAIss4Qq5GqRB0qtWbaz9ceO/A==}
@@ -155,8 +166,8 @@ packages:
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
-  typescript@5.2.2:
-    resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
+  typescript@5.8.3:
+    resolution: {integrity: sha512-p1diW6TqL9L07nNxvRMM7hMMw4c5XOo/1ibL4aAIGmSAt9slTE1Xgw5KWuof2uTOvCg9BY7ZRi+GaF+7sfgPeQ==}
     engines: {node: '>=14.17'}
     hasBin: true
 
@@ -171,8 +182,8 @@ packages:
     resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
     hasBin: true
 
-  ws@8.18.1:
-    resolution: {integrity: sha512-RKW2aJZMXeMxVpnZ6bck+RswznaxmzdULiBr6KY7XkTnW8uvt0iT9H5DkHUChXrc+uurzwa0rVI16n/Xzjdz1w==}
+  ws@8.18.2:
+    resolution: {integrity: sha512-DMricUmwGZUVr++AEAe2uiVM7UoO9MAVZMDu05UQOaUII0lp+zOzLLU4Xqh/JvTqklB1T4uELaaPBKyjE1r4fQ==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -185,12 +196,12 @@ packages:
 
 snapshots:
 
-  '@discordjs/builders@1.11.1':
+  '@discordjs/builders@1.11.2':
     dependencies:
       '@discordjs/formatters': 0.6.1
       '@discordjs/util': 1.1.1
       '@sapphire/shapeshift': 4.0.0
-      discord-api-types: 0.38.2
+      discord-api-types: 0.38.8
       fast-deep-equal: 3.1.3
       ts-mixer: 6.0.4
       tslib: 2.8.1
@@ -201,7 +212,7 @@ snapshots:
 
   '@discordjs/formatters@0.6.1':
     dependencies:
-      discord-api-types: 0.38.2
+      discord-api-types: 0.38.8
 
   '@discordjs/rest@2.5.0':
     dependencies:
@@ -210,7 +221,7 @@ snapshots:
       '@sapphire/async-queue': 1.5.5
       '@sapphire/snowflake': 3.5.3
       '@vladfrangu/async_event_emitter': 2.4.6
-      discord-api-types: 0.38.2
+      discord-api-types: 0.38.8
       magic-bytes.js: 1.12.1
       tslib: 2.8.1
       undici: 6.21.1
@@ -225,9 +236,9 @@ snapshots:
       '@sapphire/async-queue': 1.5.5
       '@types/ws': 8.18.1
       '@vladfrangu/async_event_emitter': 2.4.6
-      discord-api-types: 0.38.2
+      discord-api-types: 0.38.8
       tslib: 2.8.1
-      ws: 8.18.1
+      ws: 8.18.2
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -241,40 +252,36 @@ snapshots:
 
   '@sapphire/snowflake@3.5.3': {}
 
-  '@types/node@22.15.3':
+  '@types/mime-types@2.1.4': {}
+
+  '@types/node@22.15.24':
     dependencies:
       undici-types: 6.21.0
 
-  '@types/react-reconciler@0.31.0(@types/react@19.1.2)':
+  '@types/react-reconciler@0.32.0(pure-react-types@0.1.4)':
     dependencies:
-      '@types/react': 19.1.2
-
-  '@types/react@19.1.2':
-    dependencies:
-      csstype: 3.1.3
+      '@types/react': pure-react-types@0.1.4
 
   '@types/uuid@10.0.0': {}
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 22.15.3
+      '@types/node': 22.15.24
 
   '@vladfrangu/async_event_emitter@2.4.6': {}
 
-  csstype@3.1.3: {}
+  discord-api-types@0.38.8: {}
 
-  discord-api-types@0.38.2: {}
-
-  discord.js@14.19.2:
+  discord.js@14.19.3:
     dependencies:
-      '@discordjs/builders': 1.11.1
+      '@discordjs/builders': 1.11.2
       '@discordjs/collection': 1.5.3
       '@discordjs/formatters': 0.6.1
       '@discordjs/rest': 2.5.0
       '@discordjs/util': 1.1.1
       '@discordjs/ws': 1.2.2
       '@sapphire/snowflake': 3.5.3
-      discord-api-types: 0.38.2
+      discord-api-types: 0.38.8
       fast-deep-equal: 3.1.3
       lodash.snakecase: 4.1.1
       magic-bytes.js: 1.12.1
@@ -294,6 +301,12 @@ snapshots:
 
   magic-bytes.js@1.12.1: {}
 
+  mime-db@1.54.0: {}
+
+  mime-types@3.0.1:
+    dependencies:
+      mime-db: 1.54.0
+
   nanoevents@9.1.0: {}
 
   pure-react-types@0.1.4: {}
@@ -311,7 +324,7 @@ snapshots:
 
   tslib@2.8.1: {}
 
-  typescript@5.2.2: {}
+  typescript@5.8.3: {}
 
   undici-types@6.21.0: {}
 
@@ -319,4 +332,4 @@ snapshots:
 
   uuid@11.1.0: {}
 
-  ws@8.18.1: {}
+  ws@8.18.2: {}

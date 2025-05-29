@@ -1,8 +1,18 @@
-import type { APIMediaGalleryItem, APISelectMenuOption, APIUnfurledMediaItem, ColorResolvable, APIEmbedThumbnail, APIEmbedImage, APIPartialEmoji, GuildMember, User, Snowflake, Channel, ApplicationCommand, Role, TimestampStyles, ApplicationCommandSubCommand, ApplicationCommandSubGroup } from "discord.js";
+import type { APIMediaGalleryItem, APISelectMenuOption, APIUnfurledMediaItem, ColorResolvable, APIEmbedThumbnail, APIEmbedImage, APIPartialEmoji, GuildMember, User, Snowflake, Channel, ApplicationCommand, Role, TimestampStyles, ApplicationCommandSubCommand, ApplicationCommandSubGroup, BufferResolvable } from "discord.js";
 import type { PropsWithChildren } from "react";
 import type { UnfurledMediaResolvable } from "./base.d.ts";
 import type { SelectProps } from "./select.d.ts";
 import type { ButtonProps } from "./button.d.ts";
+import type Stream from "node:stream";
+
+/**
+ * Either an {@link APIUnfurledMediaItem}, or a URL, or a {@link File}, or a {@link Blob}, or a
+ * {@link BufferResolvable} or {@link Stream} with a filename.
+ */
+export type MediaItemResolvable = APIUnfurledMediaItem | UnfurledMediaResolvable | File | Blob | {
+    name: string;
+    attachment: BufferResolvable | Stream | Blob;
+};
 
 export interface DJSXElements {
     // main elements
@@ -47,18 +57,18 @@ export interface DJSXElements {
     thumbnail: {
         description?: string;
         spoiler?: boolean;
-        media?: APIUnfurledMediaItem | UnfurledMediaResolvable;
+        media?: MediaItemResolvable;
     } & React.JSX.IntrinsicAttributes;
 
     gallery: PropsWithChildren & React.JSX.IntrinsicAttributes;
     'gallery-item': {
-        media: APIUnfurledMediaItem | UnfurledMediaResolvable;
+        media: MediaItemResolvable;
         description?: string | null;
         spoiler?: boolean;
     } & React.JSX.IntrinsicAttributes;
 
     file: {
-        file: APIUnfurledMediaItem | UnfurledMediaResolvable;
+        file: MediaItemResolvable;
         spoiler?: boolean;
     } & React.JSX.IntrinsicAttributes;
 

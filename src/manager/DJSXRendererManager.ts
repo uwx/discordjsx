@@ -1,38 +1,41 @@
-import { ChatInputCommandInteraction, Collection, Interaction, ModalSubmitInteraction } from "discord.js";
-import { DJSXRenderer } from "../renderer/index.js";
-import { ReactNode } from "react";
-import { v4 } from "uuid";
+import { Collection, type Interaction } from "discord.js";
+import { DJSXRenderer, type DJSXRendererOptions } from "../renderer/index.js";
+import type { ReactNode } from "react";
+import type { MessageUpdateable } from "../updater/types.js";
 
 export class DJSXRendererManager {
     renderers: Collection<string, DJSXRenderer> = new Collection();
 
-    constructor() {}
-
     create(
-        interaction: ChatInputCommandInteraction | ModalSubmitInteraction,
+        interaction: MessageUpdateable,
         node?: ReactNode,
+        options?: DJSXRendererOptions,
     ) {
         const renderer = new DJSXRenderer(
             interaction,
             node,
+            options,
         );
 
-        renderer.emitter.on("inactivity", () => {
-            this.renderers.delete(renderer.key!);
-        });
+        if (options?.interactible === false) { 
+            renderer.emitter.on("inactivity", () => {
+                this.renderers.delete(renderer.key!);
+            });
 
-        this.add(renderer);
+            this.add(renderer);
+        }
 
         return renderer;
     }
     
     add(renderer: DJSXRenderer) {
-        if(!renderer.key) renderer.key = v4();
         this.renderers.set(renderer.key, renderer);
-    };
+    }
 
     dispatchInteraction(int: Interaction) {
-        this.renderers.forEach((renderer) => renderer.dispatchInteraction(int));
+        for (const renderer of this.renderers.values()) {
+            renderer.dispatchInteraction(int);
+        }
     }
 
     disable() {

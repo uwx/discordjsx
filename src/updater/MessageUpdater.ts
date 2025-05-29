@@ -1,74 +1,120 @@
-import { BaseChannel, BaseInteraction, BaseMessageOptions, blockQuote, codeBlock, ComponentType, DiscordAPIError, Message, MessageFlags, resolveColor, User } from "discord.js";
+import { BaseChannel, BaseInteraction, type BaseMessageOptions, blockQuote, codeBlock, ComponentType, DiscordAPIError, Message, MessageFlags, resolveColor, User } from "discord.js";
 import { debounceAsync } from "../utils/debounceAsync.js";
 import { markComponentsDisabled } from "../utils/markComponentsDisabled.js";
-import { inspect } from "node:util";
-import { createNanoEvents } from "nanoevents";
-import { INTERACTION_TOKEN_EXPIRY, MessageUpdateable, INTERACTION_REPLY_EXPIRY } from "./types.js";
+import { createNanoEvents, type Unsubscribe } from "nanoevents";
+import { INTERACTION_TOKEN_EXPIRY, type MessageUpdateable, INTERACTION_REPLY_EXPIRY } from "./types.js";
 import { pickMessageFlags, isUpdateableNeedsReply } from "./utils.js";
+import { defaultLog } from "../utils/log.js";
+import Mutex from "../utils/mutex.js";
 
-const REPLY_TIMEOUT = INTERACTION_REPLY_EXPIRY - 1000;
-const INTERACTION_TOKEN_TIMEOUT = INTERACTION_TOKEN_EXPIRY - 30 * 1000;
+export const REPLY_TIMEOUT = INTERACTION_REPLY_EXPIRY - 1000;
+export const INTERACTION_TOKEN_TIMEOUT = INTERACTION_TOKEN_EXPIRY - 30 * 1000;
 
 export type InteractionMessageUpdaterEventMap = {
-    tokenExpired: () => void;
-    messageUpdated: (method: "reply" | "editReply" | "update") => void;
+    tokenExpired(): void;
+    timeout(): void;
+    messageUpdated(method: "reply" | "editReply" | "update"): void;
 };
 
 export class MessageUpdater {
-    target: MessageUpdateable;
-    tokenExpired: boolean = false;
+    tokenExpired = false;
+    timedOut = false;
     emitter = createNanoEvents<InteractionMessageUpdaterEventMap>();
 
-    flags: MessageFlags[] = [MessageFlags.IsComponentsV2, MessageFlags.Ephemeral];
+    private payload: BaseMessageOptions | null = null;
 
     private tokenExpiryTimeout: NodeJS.Timeout | null = null;
 
-    constructor(target: MessageUpdateable) {
+    constructor(
+        target: MessageUpdateable,
+        private flags: MessageFlags[],
+        private readonly deferAfter: number,
+        disableAfter?: number,
+        private readonly createErrorMessage: (error: Error) => BaseMessageOptions = this.createErrorPayload.bind(this),
+        private readonly log: (level: 'message' | 'warn' | 'error' | 'trace', category: string, message: string, ...args: any[]) => void = defaultLog,
+    ) {
         this.target = target;
-        this.setTarget(target);
-    }
 
-    setTarget(target: MessageUpdateable) {
-        this.target = target;
-
-        this.setExpiry();
-
-        if (isUpdateableNeedsReply(target)) {
+        if (deferAfter && target instanceof BaseInteraction && target.isRepliable()) {
             setTimeout(async () => {
-                if (!target.replied && !target.deferred) {
-                    await target.deferUpdate();
+                // there's a race condition here because interaction.deferred will only be set after the request commpletes
+                // so if a message tries to send after this call starts but before it completes, it will silently fail
+                // because of this, we use a mutex.
+                
+                try {
+                    await this.updateTargetMutex.runInMutex(async () => {
+                        if (!target.replied && !target.deferred) {
+                            this.log('trace', 'jsx/updater', `Deferring reply to interaction ${target.id} due to no initial reply in time`);
+                            await target.deferReply({
+                                // HACK: type assertion until discord.js typings are updated to include MessageFlags.IsComponentsV2
+                                flags: pickMessageFlags(this.flags, [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]) as [MessageFlags.Ephemeral]
+                            });
+                        } else {
+                            this.log('trace', 'jsx/updater', `Not deferring reply to interaction ${target.id} because it's already replied or deferred`);
+                        }
+                    });
+                } catch (err) {
+                    this.log('error', 'jsx/updater', `Failed to defer reply to interaction ${target.id}`, err);
                 }
             }, REPLY_TIMEOUT);
         }
+
+        if (disableAfter) {
+            setTimeout(() => this.onTimeout(), disableAfter);
+        }
     }
 
-    private setExpiry() {
+    private _target: MessageUpdateable = undefined!;
+    set target(target: MessageUpdateable) {
+        this._target = target;
+
+        this.resetExpiry();
+
+        if (this.deferAfter && isUpdateableNeedsReply(target)) {
+            setTimeout(async () => {
+                // same race condition as above
+                try {
+                    await this.updateTargetMutex.runInMutex(async () => {
+                        this.log('trace', 'jsx/updater', `Deferring update to component interaction ${target.id}`);
+                        if (!target.replied && !target.deferred) {
+                            await target.deferUpdate();
+                        }
+                    });
+                } catch (err) {
+                    this.log('error', 'jsx/updater', `Failed to defer update to component interaction ${target.id}`, err);
+                }
+            }, this.deferAfter);
+        }
+    }
+    get target() {
+        return this._target;
+    }
+
+    private resetExpiry() {
         if (this.tokenExpiryTimeout) {
             clearTimeout(this.tokenExpiryTimeout);
-        };
+        }
 
         this.tokenExpired = false;
-        this.tokenExpiryTimeout = setTimeout(this.onTokenExpired.bind(this), INTERACTION_TOKEN_TIMEOUT);
+        this.tokenExpiryTimeout = setTimeout(() => this.onTokenExpired(), INTERACTION_TOKEN_TIMEOUT);
     }
 
-    setFlags(flags: MessageFlags[]) {
-        this.flags = flags;
-    }
+    private readonly updateTargetMutex = new Mutex();
+    updateMessage = debounceAsync(async (...args: Parameters<MessageUpdater['_updateMessage']>) => {
+        return await this._updateMessage(...args);
+    }, 300, this.updateTargetMutex);
 
-    updateMessageDebounced = debounceAsync(async (options: BaseMessageOptions) => {
-        return await this.updateMessage(options);
-    });
-
-    private lastPayload: BaseMessageOptions | null = null;
-    async updateMessage(options: BaseMessageOptions) {
+    private async _updateMessage(flags: MessageFlags[], options: BaseMessageOptions) {
         if (this.tokenExpired) {
-            console.log("[discord-jsx-renderer] Tried to updateMessage on an expired interaction");
+            this.log('message', 'jsx/updater', "Tried to updateMessage on an expired interaction");
             return;
-        };
+        }
+
+        this.flags = flags;
+        this.payload = options;
 
         try {
-            await this.updateMessageRaw(options);
-            this.lastPayload = options;
+            await this.updateMessageRaw();
         } catch (e) {
             await this.handleError(e as Error);
         }
@@ -77,34 +123,27 @@ export class MessageUpdater {
     // Error handling
 
     async handleError(error: Error) {
-        if (error instanceof DiscordAPIError && error.code == 10062) {
+        if (error instanceof DiscordAPIError && error.code === 10062) {
             this.tokenExpired = true;
             return;
         }
 
-        if (error instanceof DiscordAPIError) console.log(inspect(error.requestBody, { depth: Infinity }));
-
-        await this.showErrorMessage(error);
-    }
-
-    async showErrorMessage(error: Error) {
-        const options = this.createErrorPayload(error);
+        this.payload = this.createErrorMessage(error);
 
         try {
-            await this.updateMessageRaw(options);
+            await this.updateMessageRaw();
         } catch (e) {
-            console.log("[jsx/updater] Couldn't show render-error message for:", error);
-            console.log("[jsx/updater] Error thrown while trying to show error message:", e);
-            if (e instanceof DiscordAPIError) console.log(inspect(e.requestBody, { depth: Infinity }));
+            this.log('error', "jsx/updater", "Couldn't show render-error message for:", error);
+            this.log('error', "jsx/updater", "Error thrown while trying to show error message:", e);
         }
     }
 
     private createErrorPayload(e: Error): BaseMessageOptions {
-        let content = [
+        const content = [
             "-# `discord-jsx-renderer`: failed to render",
             "### ⚠️ **Error**",
             "",
-            codeBlock(e.toString()),
+            codeBlock(`${e.toString()}\n\n${e.stack}`),
         ].join("\n");
 
         if (this.flags.includes(MessageFlags.IsComponentsV2)) {
@@ -122,20 +161,25 @@ export class MessageUpdater {
                     },
                 ],
             };
-        } else {
-            return {
-                content: blockQuote(content),
-            };
+        }
+
+        return {
+            content: blockQuote(content),
         };
     }
 
     // Raw
 
-    async updateMessageRaw(options: BaseMessageOptions) {
+    async updateMessageRaw() {
+        if (!this.payload) {
+            throw new Error('Missing payload!');
+        }
+
         if (this.target instanceof BaseInteraction) {
             if (this.target.replied || this.target.deferred) {
+                this.log('trace', 'jsx/updater', `Editing reply to interaction ${this.target.id}`, this.payload);
                 await this.target.editReply({
-                    ...options,
+                    ...this.payload,
                     flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
                 });
             } else {
@@ -143,8 +187,9 @@ export class MessageUpdater {
                     this.target.isChatInputCommand()
                     || (this.target.isModalSubmit() && !this.target.isFromMessage())
                 ) {
+                    this.log('trace', 'jsx/updater', `Replying to command or modal interaction ${this.target.id}`, this.payload);
                     await this.target.reply({
-                        ...options,
+                        ...this.payload,
                         flags: pickMessageFlags(this.flags, [
                             MessageFlags.Ephemeral,
                             MessageFlags.SuppressEmbeds,
@@ -156,20 +201,33 @@ export class MessageUpdater {
                     this.target.isMessageComponent()
                     || (this.target.isModalSubmit() && this.target.isFromMessage())
                 ) {
+                    this.log('trace', 'jsx/updater', `Replying to component interaction ${this.target.id}`, this.payload);
                     await this.target.update({
-                        ...options,
+                        ...this.payload,
                         flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
                     });
                 }
             }
         } else if (this.target instanceof Message) {
+            this.log('trace', 'jsx/updater', `Updating message ${this.target.id}`, this.payload);
             await this.target.edit({
-                ...options,
+                ...this.payload,
                 flags: pickMessageFlags(this.flags, [MessageFlags.SuppressEmbeds, MessageFlags.IsComponentsV2]),
             });
-        } else if (this.target instanceof BaseChannel || this.target instanceof User) {
+        } else if (this.target instanceof BaseChannel) {
+            this.log('trace', 'jsx/updater', `Messaging in channel ${this.target.id}`, this.payload);
             this.target = await this.target.send({
-                ...options,
+                ...this.payload,
+                flags: pickMessageFlags(this.flags, [
+                    MessageFlags.SuppressEmbeds,
+                    MessageFlags.SuppressNotifications,
+                    MessageFlags.IsComponentsV2,
+                ]),
+            });
+        } else if (this.target instanceof User) {
+            this.log('trace', 'jsx/updater', `DMing user ${this.target.id}`, this.payload);
+            this.target = await (await this.target.createDM()).send({
+                ...this.payload,
                 flags: pickMessageFlags(this.flags, [
                     MessageFlags.SuppressEmbeds,
                     MessageFlags.SuppressNotifications,
@@ -184,17 +242,31 @@ export class MessageUpdater {
     private async onTokenExpired() {
         await this.disable();
         this.tokenExpired = true;
+        this.timedOut = true;
         this.emitter.emit("tokenExpired");
     }
 
+    private async onTimeout() {
+        await this.disable();
+        this.timedOut = true;
+        this.emitter.emit("timeout");
+    }
+
     async disable() {
-        if (!this.lastPayload) return;
-        if (this.tokenExpired) return;
+        if (!this.payload || this.tokenExpired || this.timedOut) return;
+
+        this.payload = markComponentsDisabled(this.payload);
 
         try {
-            await this.updateMessage(markComponentsDisabled(this.lastPayload));
+            await this.updateMessageRaw();
         } catch (e) {
-            console.log(e);
+            this.log('error', 'jsx/updater', 'While trying to disable message components', e);
         }
+    }
+
+    // Events
+
+    on<K extends keyof InteractionMessageUpdaterEventMap>(this: this, event: K, cb: InteractionMessageUpdaterEventMap[K]): Unsubscribe {
+        return this.emitter.on(event, cb);
     }
 };
