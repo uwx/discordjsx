@@ -2,10 +2,10 @@ import type { APIButtonComponent, APIMessage, APIMessageComponent, APIMessageTop
 import { ApplicationCommand, blockQuote, bold, ButtonStyle, channelMention, chatInputApplicationCommandMention, codeBlock, ComponentType, formatEmoji, heading, hideLinkEmbed, hyperlink, inlineCode, italic, MessageFlags, resolveColor, roleMention, spoiler, strikethrough, subtext, time, underline, userMention } from "discord.js";
 import type { InternalNode } from "../reconciler/index.js";
 import { v4 } from "uuid";
-import type { DJSXEventHandlerMap } from "../types/index.js";
+import type { DJSXEventHandlerMap } from "../intrinsics/index.js";
 import type { MessagePayloadOutput, ModalPayloadOutput } from "./types.js";
 import type { DefaultButtonProps, LinkButtonProps, PremiumButtonProps } from "../intrinsics/elements/button.js";
-import type { DJSXElements, MediaItemResolvable } from "../intrinsics/elements/index.js";
+import type { MediaItemResolvable } from "../intrinsics/index.js";
 import type Stream from "node:stream";
 import { resolveEmoji } from "../utils/resolve.js";
 import mime from 'mime-types';
@@ -151,7 +151,7 @@ export class PayloadBuilder {
     }
 
     createModal(node: InternalNode): ModalPayloadOutput {
-        const custom_id = (node.props as DJSXElements['modal']).customId || this.createCustomId();
+        const custom_id = (node.props as React.JSX.IntrinsicElements['modal']).customId || this.createCustomId();
         const components = this.toDiscordComponentsArray(node.children);
 
         if (node.props.onSubmit)
@@ -222,7 +222,7 @@ export class PayloadBuilder {
                     items: node.children
                         .filter(child => child.type === 'gallery-item')
                         .map(child => {
-                            const props = child.props as DJSXElements['gallery-item'];
+                            const props = child.props as React.JSX.IntrinsicElements['gallery-item'];
                             return {
                                 media: this.resolveAttachment(props.media),
                                 description: props.description,
