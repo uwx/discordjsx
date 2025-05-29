@@ -58,7 +58,7 @@ export class JSXRenderer {
 
     static renderOnce(node: React.ReactNode) {
         return new Promise<InternalNode | null>((res) => {
-            let renderer = new JSXRenderer();
+            const renderer = new JSXRenderer();
             renderer.emitter.on("render", (container, node) => {
                 res(node);
             });
