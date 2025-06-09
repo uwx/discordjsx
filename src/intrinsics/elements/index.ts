@@ -1,10 +1,12 @@
-import type { APISelectMenuOption, ColorResolvable } from "discord.js";
+import type { APISelectMenuOption, ColorResolvable, ModalSubmitInteraction } from "discord.js";
 import type { PropsWithChildren } from "react";
 import type { SelectProps } from "./select.js";
 import type { ButtonProps } from "./button.js";
 import { MediaItemResolvable } from "./base.js";
+import { DJSXEventHandler } from "../events.js";
+import { DJSXForm } from "../form.js";
 
-export interface IntrinsicDiscordElements {
+export interface IntrinsicRootElements {
     message: PropsWithChildren<{
         v2?: boolean;
         ephemeral?: boolean;
@@ -12,7 +14,7 @@ export interface IntrinsicDiscordElements {
     modal: PropsWithChildren<{
         title: string;
         customId?: string;
-        onSubmit?: () => void;
+        onSubmit?: DJSXEventHandler<DJSXForm, ModalSubmitInteraction>;
     }> & React.JSX.IntrinsicAttributes;
 }
 
@@ -69,4 +71,4 @@ export interface IntrinsicMessageComponents {
     } & React.JSX.IntrinsicAttributes;
 }
 
-export interface DJSXElements extends IntrinsicDiscordElements, IntrinsicMessageComponents {};
+export interface DJSXElements extends IntrinsicRootElements, IntrinsicMessageComponents {};
