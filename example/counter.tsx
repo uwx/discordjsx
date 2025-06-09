@@ -1,12 +1,13 @@
-import "../"
+import "../src/index.js"
 import React, { useEffect, useState } from "react";
+import { djsx } from "./index.js"
 
 export const Counter = () => {
     const [count, setCount] = useState(0);
     const [error, setError] = useState(false);
     const [doThrow, setDoThrow] = useState(false);
 
-    if(doThrow) throw new Error("This error should be displayed on discord");
+    if (doThrow) throw new Error("This error should be displayed on discord");
 
     // useEffect(() => {
     //     const i = setInterval(() => {
@@ -44,15 +45,30 @@ export const Counter = () => {
                     <button style="secondary">
                         No Event Handler
                     </button>
-                </row>
-                <row>
                     <button style="danger" onClick={() => setError(true)}>
                         Make payload invalid
                     </button>
-                </row>
-                <row>
                     <button style="danger" onClick={() => setDoThrow(true)}>
                         Make component throw
+                    </button>
+                </row>
+                <row>
+                    <button onClick={(buttonInteraction) => {
+                        djsx.createModal(buttonInteraction, (
+                            <modal title="Example" onSubmit={async (form, int) => {
+                                console.log("Form submitted", form)
+                                await int.deferUpdate();
+                            }}>
+                                <row>
+                                    <text-input
+                                        label="Name"
+                                        customId="name"
+                                    />
+                                </row>
+                            </modal>
+                        ))
+                    }}>
+                        Open modal
                     </button>
                 </row>
             </container>

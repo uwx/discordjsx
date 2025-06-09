@@ -44,7 +44,7 @@ export class JSXRenderer {
             // onRecoverableError: (error: Error) => void
             (e: Error, errorInfo: React.ErrorInfo) => this.emitter.emit("recoverableError", e),
             // onDefaultTransitionIndicator: () => (void | (() => void))
-            () => {},
+            () => { },
             // transitionCallbacks: null | TransitionTracingCallbacks
             null
         );
@@ -57,13 +57,19 @@ export class JSXRenderer {
     }
 
     static renderOnce(node: React.ReactNode) {
-        return new Promise<InternalNode | null>((res) => {
-            const renderer = new JSXRenderer();
-            renderer.emitter.on("render", (container, node) => {
-                res(node);
-            });
-            renderer.setRoot(node);
+        const { promise, reject, resolve } = Promise.withResolvers<InternalNode | null>();
+
+        const renderer = new JSXRenderer();
+        
+        renderer.on("renderError", (e) => reject(e));
+        renderer.on("caughtError", (e) => reject(e));
+        renderer.on("recoverableError", (e) => reject(e));
+        renderer.on("render", (_, node) => {
+            resolve(node);
         });
+
+        renderer.setRoot(node);
+        return promise;
     }
 
     on<K extends keyof JSXRendererEventMap>(event: K, cb: JSXRendererEventMap[K]): Unsubscribe {

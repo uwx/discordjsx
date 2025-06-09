@@ -46,8 +46,7 @@ export class MessageUpdater {
                         if (!target.replied && !target.deferred) {
                             this.log('trace', 'jsx/updater', `Deferring reply to interaction ${target.id} due to no initial reply in time`);
                             await target.deferReply({
-                                // HACK: type assertion until discord.js typings are updated to include MessageFlags.IsComponentsV2
-                                flags: pickMessageFlags(this.flags, [MessageFlags.Ephemeral, MessageFlags.IsComponentsV2]) as [MessageFlags.Ephemeral]
+                                flags: pickMessageFlags(this.flags, [MessageFlags.Ephemeral]),
                             });
                         } else {
                             this.log('trace', 'jsx/updater', `Not deferring reply to interaction ${target.id} because it's already replied or deferred`);
@@ -261,6 +260,23 @@ export class MessageUpdater {
             await this.updateMessageRaw();
         } catch (e) {
             this.log('error', 'jsx/updater', 'While trying to disable message components', e);
+        }
+    }
+
+    // Helpers
+
+    async fetchMessage() {
+        if(this.target instanceof BaseInteraction) {
+            if(this.target.isMessageComponent() || (this.target.isModalSubmit() && this.target.isFromMessage())) {
+                return this.target.message;
+            } else {
+                if(!this.target.replied && !this.target.deferred) return null;
+                return await this.target.fetchReply();
+            }
+        } else if(this.target instanceof Message) {
+            return this.target ?? null;
+        } else {
+            return null;
         }
     }
 

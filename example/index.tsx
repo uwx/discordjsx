@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { Client, Events } from "discord.js";
-import { DJSXRendererManager } from "../src";
-import { Counter } from "./counter";
+import { DJSXRendererManager } from "../src/index.js";
+import { Counter } from "./counter.js";
 import React from "react";
 
 const client = new Client({
@@ -12,7 +12,7 @@ client.on(Events.ClientReady, (readyClient) => {
     console.log(`Logged in as ${readyClient.user.tag} !`);
 });
 
-const djsx = new DJSXRendererManager();
+export const djsx = new DJSXRendererManager();
 
 client.on(Events.InteractionCreate, (interaction) => {
     if(interaction.isChatInputCommand()) {
